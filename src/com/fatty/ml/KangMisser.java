@@ -1,13 +1,9 @@
 package com.fatty.ml;
 
 import com.fatty.Helper;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.util.ArrayList;
-import java.util.List;
+import weka.core.Instance;
+import weka.core.Instances;
+import weka.core.converters.ConverterUtils;
 import java.util.Random;
 
 /**
@@ -38,75 +34,54 @@ public class KangMisser implements Misser {
         Helper.checkNotNegative("ratio", ratio);
         Helper.checkNotNegative("1-ratio", 1.0 - ratio);
 
-        List<String> titles = new ArrayList<>();
-        List<String> contents = new ArrayList<>();
-        // Read source file.
-        try (FileReader fr = new FileReader(srcArffFile);
-             BufferedReader br = new BufferedReader(fr)) {
-            boolean hasReadTitles = false;
-            String line;
-            while((line = br.readLine()) != null) {
-                if (hasReadTitles) {
-                    contents.add(line.trim());
-                } else {
-                    titles.add(line.trim());
-                }
-                // Update the state variable.
-                if (line.toUpperCase().startsWith("@DATA")) {
-                    hasReadTitles = true;
-                }
-            }
+        Instances data;
+        // Parses the dataset.
+        try {
+            data = ConverterUtils.DataSource.read(srcArffFile);
         } catch (Exception e) {
-            throw new MissException("Error parsing source ARFF file: " + srcArffFile, e);
+            throw new MissException("Error occurs while parsing the source arff file. Details: " + e.getMessage(), e);
         }
-
-        // Do missing.
-        if (!contents.isEmpty()) {
-            for (int i=0; i<contents.size(); ++i) {
-                if (rnd.nextFloat() < ratio && !contents.get(i).isEmpty()) {
-                    try {
-                        contents.set(i, missInstance(contents.get(i)));
-                    } catch (Exception e) {
-                        // Yield.
-                        System.out.println("Error occurs while missing one instance. Details: " + e.getMessage());
-                    }
-                }
-            }
-        }
-
-        // Write destination file.
-        try (FileWriter fw = new FileWriter(destArffFile);
-             BufferedWriter bw = new BufferedWriter(fw)) {
-            for (String s : titles) {
-                bw.write(s);
-                bw.write("\n");
-            }
-            for (String s : contents) {
-                bw.write(s);
-                bw.write("\n");
-            }
+        // Misses data.
+        data = miss(data, ratio);
+        Helper.checkNotNull("missed data set", data);
+        // Writes the result.
+        try {
+            ConverterUtils.DataSink.write(destArffFile, data);
         } catch (Exception e) {
-            throw new MissException("Error writing destination ARFF file. Details: ", e);
+            throw new MissException("Error occurs while writing the generated arff file. Details: " + e.getMessage(), e);
         }
     }
 
-    public String missInstance(String instance) throws IllegalArgumentException {
-        // Ignore parameter checking.
-        String[] parts = instance.split(",");
-        if (parts.length == 0) {
-            throw new IllegalArgumentException("Expected instance contains comma, but got " + instance);
-        }
+    public Instances miss(Instances data, double ratio) throws IllegalArgumentException, NullPointerException {
+        Helper.checkNotNull("data set", data);
+        Helper.checkNotNegative("ratio", ratio);
+        Helper.checkNotNegative("1-ratio", 1.0 - ratio);
 
+        if (!data.isEmpty()) {
+            Instance line;
+            for (int i=0; i<data.numInstances(); ++i) {
+                if (rnd.nextDouble() < ratio) {
+                    line = data.get(i);
+                    line = missInstance(line);
+                    data.set(i, line);
+                }
+            }
+        }
+        return data;
+    }
+
+    protected Instance missInstance(Instance instance) {
+        int numAttr = instance.numAttributes();
         int toMiss = (int) Math.round(
-                (rnd.nextDouble()*singleInstanceMissRange+singleInstanceMissMin)*parts.length);
+                (rnd.nextDouble()*singleInstanceMissRange+singleInstanceMissMin)*numAttr);
         toMiss = Math.max(toMiss, 1);
-        toMiss = Math.min(toMiss, parts.length);
-        int[] indices = firstNRandInt(toMiss, parts.length);
+        toMiss = Math.min(toMiss, numAttr);
+        int[] indices = firstNRandInt(toMiss, numAttr);
         for (int i=0; i<toMiss; ++i) {
-            parts[indices[i]] = "?";
+            instance.setMissing(indices[i]);
         }
 
-        return Helper.join(",", parts);
+        return instance;
     }
 
     protected int[] firstNRandInt(int numToGenerate, int total) {
@@ -114,10 +89,10 @@ public class KangMisser implements Misser {
         for (int i=0; i<array.length; ++i) {
             array[i] = i;
         }
-        int toSwap = -1;
+        int toSwap;
         int tmp;
         for (int i=0; i< Math.min(numToGenerate, total-1); ++i) {
-            toSwap = i + rnd.nextInt(total - 1 - i);
+            toSwap = i + rnd.nextInt(total - i);
             // Swap two elements.
             tmp = array[toSwap];
             array[toSwap] = array[i];
