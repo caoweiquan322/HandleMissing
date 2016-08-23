@@ -27,7 +27,7 @@ public class KangMisser implements Misser {
     }
 
     @Override
-    public void miss(String srcArffFile, String destArffFile, double ratio)
+    public void miss(String srcArffFile, String destArffFile, double ratio, int classIndex)
             throws IllegalArgumentException, NullPointerException, MissException {
         Helper.checkFileExists(srcArffFile);
         Helper.checkNotNullNorEmpty("destArffFile", destArffFile);
@@ -42,7 +42,7 @@ public class KangMisser implements Misser {
             throw new MissException("Error occurs while parsing the source arff file. Details: " + e.getMessage(), e);
         }
         // Misses data.
-        data = miss(data, ratio);
+        data = miss(data, ratio, classIndex);
         Helper.checkNotNull("missed data set", data);
         // Writes the result.
         try {
@@ -52,31 +52,31 @@ public class KangMisser implements Misser {
         }
     }
 
-    public Instances miss(Instances data, double ratio) throws IllegalArgumentException, NullPointerException {
+    public Instances miss(Instances data, double ratio, int classIndex) throws IllegalArgumentException, NullPointerException {
         Helper.checkNotNull("data set", data);
         Helper.checkNotNegative("ratio", ratio);
         Helper.checkNotNegative("1-ratio", 1.0 - ratio);
 
         if (!data.isEmpty()) {
-            Instance line;
+            Helper.setDataSetClassIndex(data, classIndex);
+            classIndex = data.classIndex();  // In case classIndex equals to -1.
             for (int i=0; i<data.numInstances(); ++i) {
                 if (rnd.nextDouble() < ratio) {
-                    line = data.get(i);
-                    line = missInstance(line);
-                    data.set(i, line);
+                    data.set(i, missInstance(data.get(i), classIndex));
                 }
             }
         }
         return data;
     }
 
-    protected Instance missInstance(Instance instance) {
+    protected Instance missInstance(Instance instance, int classIndex) {
+        // Ensure that the class index is within [0, numAttr).
         int numAttr = instance.numAttributes();
         int toMiss = (int) Math.round(
-                (rnd.nextDouble()*singleInstanceMissRange+singleInstanceMissMin)*numAttr);
+                (rnd.nextDouble()*singleInstanceMissRange+singleInstanceMissMin)*(numAttr-1));
         toMiss = Math.max(toMiss, 1);
-        toMiss = Math.min(toMiss, numAttr);
-        int[] indices = firstNRandInt(toMiss, numAttr);
+        toMiss = Math.min(toMiss, numAttr-1);
+        int[] indices = firstNRandInt(toMiss, numAttr, classIndex);
         for (int i=0; i<toMiss; ++i) {
             instance.setMissing(indices[i]);
         }
@@ -84,15 +84,17 @@ public class KangMisser implements Misser {
         return instance;
     }
 
-    protected int[] firstNRandInt(int numToGenerate, int total) {
-        int[] array = new int[total];
-        for (int i=0; i<array.length; ++i) {
-            array[i] = i;
+    protected int[] firstNRandInt(int numToGenerate, int total, int exceptIndex) {
+        int[] array = new int[total-1];
+        int count = 0;
+        for (int i=0; i<total; ++i) {
+            if (i != exceptIndex)
+                array[count++] = i;
         }
         int toSwap;
         int tmp;
-        for (int i=0; i< Math.min(numToGenerate, total-1); ++i) {
-            toSwap = i + rnd.nextInt(total - i);
+        for (int i=0; i< Math.min(numToGenerate, total-2); ++i) {
+            toSwap = i + rnd.nextInt(total - 1 - i);
             // Swap two elements.
             tmp = array[toSwap];
             array[toSwap] = array[i];

@@ -1,5 +1,7 @@
 package com.fatty;
 
+import weka.core.Instances;
+
 import java.io.File;
 
 /**
@@ -70,5 +72,17 @@ public class Helper {
         }
 
         return new String(sb);
+    }
+
+    public static void setDataSetClassIndex(Instances instances, int classIndex) throws IllegalArgumentException {
+        Helper.checkNotNull("instances", instances);
+        if (classIndex>=0 && classIndex < instances.numAttributes()) {
+            instances.setClassIndex(classIndex);
+        } else if (classIndex == -1) {
+            instances.setClassIndex(instances.numAttributes()-1);
+        } else {
+            throw new IllegalArgumentException("Expected class index to be -1 or within range [0, "
+                    + instances.numAttributes() + "), but got " + classIndex);
+        }
     }
 }
