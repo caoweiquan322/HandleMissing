@@ -33,6 +33,11 @@ public class LLR extends AbstractClassifier {
         this.completeData = null;
     }
 
+    public LLR(int initK) {
+        this.initK = initK;
+        this.completeData = null;
+    }
+
     @Override
     public void buildClassifier(Instances instances) throws Exception {
         Helper.checkNotNull("instances", instances);
@@ -99,6 +104,9 @@ public class LLR extends AbstractClassifier {
         int[] nearestIndices = Helper.getLeastIndices(distances, k);
 
         // Solve the QP for the best reconstruction.
+        double[] weights = new double[k];
+        for (int i=0; i<k; ++i)
+            weights[i] = 1.0/k;
         OptimizationRequest or = new OptimizationRequest();
         double[][] halfP = new double[completeIndices.size()][k];
         for (int j=0; j<k; ++j) {
@@ -109,7 +117,7 @@ public class LLR extends AbstractClassifier {
         }
         double[] halfQ = new double[completeIndices.size()];
         for (int i=0; i<completeIndices.size(); ++i) {
-            halfQ[i] = instance.value(completeIndices.get(i));
+            halfQ[i] = -instance.value(completeIndices.get(i));
         }
         double[][] halfPt = matTranspose(halfP);
         double[][] P = matMultiply(halfPt, halfP);
@@ -124,10 +132,11 @@ public class LLR extends AbstractClassifier {
         or.setFi(inequalities);
         or.setA(DoubleFactory2D.dense.make(1, k, 1.0));
         or.setB(DoubleFactory1D.dense.make(1, 1.0));
+        or.setInitialPoint(weights);
         JOptimizer opt = new JOptimizer();
         opt.setOptimizationRequest(or);
         int retCode = opt.optimize();
-        double[] weights = opt.getOptimizationResponse().getSolution();
+        weights = opt.getOptimizationResponse().getSolution();
         Helper.checkNotNull("weights", weights);
         Helper.checkIntEqual(weights.length, k);
 

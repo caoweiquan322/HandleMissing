@@ -4,10 +4,13 @@ import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.classifiers.functions.SMO;
 import weka.classifiers.lazy.IBk;
+import weka.classifiers.rules.DecisionTable;
 import weka.classifiers.trees.J48;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.converters.ConverterUtils;
+import weka.core.neighboursearch.FilteredNeighbourSearch;
+import weka.core.neighboursearch.KDTree;
 import weka.core.neighboursearch.LinearNNSearch;
 
 import java.util.HashMap;
@@ -48,7 +51,7 @@ public class Main {
         try {
             HashMap<String, Integer> dataSetClassIndex = createDataSetClassIndex();
             double[] missingRatios = {0.0, 0.01, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5};
-            int missRepeat = 3;
+            int missRepeat = 30;
 
             String dataSetName = "iris";
             String originalFile = "/home/fatty/Mining/SA/" + dataSetName + ".arff";
@@ -57,7 +60,7 @@ public class Main {
             original.setClassIndex(original.numAttributes()-1);
 
             if (false) {
-                Classifier classifier = new LLR();
+                Classifier classifier = new LLR(20);
                 classifier.buildClassifier(original);
                 int correct = 0;
                 for (int i=0; i<original.numInstances(); ++i) {
@@ -79,14 +82,14 @@ public class Main {
                 double correctRate = 0.0;
                 for (int i=0; i<missRepeat; ++i) {
                     Instances missed = misser.miss(original, missingRatio, classIndex);
-                    // Instances meiImputed = new MEIImputer().impute(missed, classIndex);
-                    IBk classifier = new IBk();
-                    classifier.setNearestNeighbourSearchAlgorithm(new LinearNNSearch());
+                    Instances meiImputed = new MEIImputer().impute(missed, classIndex);
+                    IBk classifier = new FastLLR();
+                    classifier.setNearestNeighbourSearchAlgorithm(new FilteredNeighbourSearch());
                     classifier.setKNN(20);
                     correctRate += evaluateDataSet(missed, classifier);
                 }
                 correctRate /= missRepeat;
-                System.out.println("Accurancy for missing ratio " + missingRatio + ": " + correctRate);
+                System.out.println("Accuracy for missing ratio " + missingRatio + ": " + correctRate);
             }
 
         } catch (IllegalArgumentException | NullPointerException e) {
