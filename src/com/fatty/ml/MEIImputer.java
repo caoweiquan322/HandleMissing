@@ -1,7 +1,6 @@
 package com.fatty.ml;
 
 import com.fatty.Helper;
-import weka.core.Instance;
 import weka.core.Instances;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.ReplaceMissingValues;

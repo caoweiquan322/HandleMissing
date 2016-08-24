@@ -57,6 +57,8 @@ public class KangMisser implements Misser {
         Helper.checkNotNegative("ratio", ratio);
         Helper.checkNotNegative("1-ratio", 1.0 - ratio);
 
+        // Deep copy the data set.
+        data = new Instances(data);
         if (!data.isEmpty()) {
             Helper.setDataSetClassIndex(data, classIndex);
             classIndex = data.classIndex();  // In case classIndex equals to -1.

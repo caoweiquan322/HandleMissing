@@ -1,11 +1,14 @@
 package com.fatty.ml;
 
-import com.fatty.Helper;
+import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
+import weka.classifiers.functions.SMO;
+import weka.classifiers.lazy.IBk;
 import weka.classifiers.trees.J48;
+import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.converters.ConverterUtils;
-import weka.filters.unsupervised.attribute.ReplaceMissingValues;
+import weka.core.neighboursearch.LinearNNSearch;
 
 import java.util.HashMap;
 import java.util.Random;
@@ -28,26 +31,64 @@ public class Main {
         return dataSetClassIndex;
     }
 
+    public static double evaluateDataSet(Instances instances, Classifier classifier) throws Exception {
+        int numFold = 10;
+        double performance = 0;
+        final int NUM_TEST = 1;
+        for (int i=0; i<NUM_TEST; ++i) {
+            Evaluation eval = new Evaluation(instances);
+            eval.crossValidateModel(classifier, instances, numFold, new Random());
+            performance += eval.errorRate();
+        }
+        return 1.0-performance/NUM_TEST;
+
+    }
+
     public static void main(String[] args) {
         try {
             HashMap<String, Integer> dataSetClassIndex = createDataSetClassIndex();
+            double[] missingRatios = {0.0, 0.01, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5};
+            int missRepeat = 3;
 
-            String originalFile = "/home/fatty/Mining/SA/wine.arff";
-            String missedFile = "./data/wine.arff";
+            String dataSetName = "iris";
+            String originalFile = "/home/fatty/Mining/SA/" + dataSetName + ".arff";
+            int classIndex = dataSetClassIndex.get(dataSetName);
+            Instances original = ConverterUtils.DataSource.read(originalFile);
+            original.setClassIndex(original.numAttributes()-1);
+
+            if (false) {
+                Classifier classifier = new LLR();
+                classifier.buildClassifier(original);
+                int correct = 0;
+                for (int i=0; i<original.numInstances(); ++i) {
+                    Instance instance = original.get(i);
+                    double oriX = instance.classValue();
+                    instance.setClassMissing();
+                    double x = classifier.classifyInstance(instance);
+                    System.out.println("==> " + ((int)x) + ": " + ((int)oriX));
+                    if ((int)x == ((int)oriX))
+                        correct++;
+                }
+                System.out.println("Correctness: " + correct/1.0/original.numInstances());
+                return;
+            }
+
             Misser misser = new KangMisser(0.0, 0.5);
-            misser.miss(originalFile, missedFile, 0.6, dataSetClassIndex.get("wine"));
-            Instances data = ConverterUtils.DataSource.read(missedFile);
-            Helper.setDataSetClassIndex(data, dataSetClassIndex.get("wine"));
 
-            Evaluation eval = new Evaluation(data);
-            eval.crossValidateModel(new J48(), data, 10, new Random());
-            System.out.println(eval.toSummaryString());
+            for (double missingRatio : missingRatios) {
+                double correctRate = 0.0;
+                for (int i=0; i<missRepeat; ++i) {
+                    Instances missed = misser.miss(original, missingRatio, classIndex);
+                    // Instances meiImputed = new MEIImputer().impute(missed, classIndex);
+                    IBk classifier = new IBk();
+                    classifier.setNearestNeighbourSearchAlgorithm(new LinearNNSearch());
+                    classifier.setKNN(20);
+                    correctRate += evaluateDataSet(missed, classifier);
+                }
+                correctRate /= missRepeat;
+                System.out.println("Accurancy for missing ratio " + missingRatio + ": " + correctRate);
+            }
 
-            Instances imputedData = new MEIImputer().impute(data, dataSetClassIndex.get("wine"));
-            ConverterUtils.DataSink.write("./data/wine_impute.arff", imputedData);
-            Evaluation eval2 = new Evaluation(imputedData);
-            eval2.crossValidateModel(new J48(), imputedData, 10, new Random());
-            System.out.println(eval.toSummaryString());
         } catch (IllegalArgumentException | NullPointerException e) {
             System.out.println("Error occurs in main task. Details: " + e.getMessage());
         } catch (MissException e) {

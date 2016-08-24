@@ -8,5 +8,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="weka-src" level="project" />
+    <orderEntry type="library" name="joptimizer-3.5.1" level="project" />
+    <orderEntry type="library" name="joptimizer-depends" level="project" />
   </component>
 </module>
