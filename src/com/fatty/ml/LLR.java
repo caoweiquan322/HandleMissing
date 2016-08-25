@@ -15,7 +15,6 @@ import weka.classifiers.AbstractClassifier;
 import weka.core.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -91,7 +90,8 @@ public class LLR extends AbstractClassifier {
         }
         if (completeIndices.size() < MIN_ATTRIBUTE_TO_RECONSTRUCT) {
             // Failed to classify.
-            throw new Exception("The number of complete attributes is too few to reconstruct.");
+            throw new Exception("The number of complete attributes is too few to reconstruct. At least "
+                    + MIN_ATTRIBUTE_TO_RECONSTRUCT + " is required.");
         }
 
         // Calculate distances.
@@ -100,14 +100,10 @@ public class LLR extends AbstractClassifier {
             distances[i] = distance(completeData.get(i), instance, completeIndices);
         }
 
-        // Sort top-K nearest neighbours.
+        // Sort top-K nearest neighbours within O(N) time efficiently.
         int[] nearestIndices = Helper.getLeastIndices(distances, k);
 
         // Solve the QP for the best reconstruction.
-        double[] weights = new double[k];
-        for (int i=0; i<k; ++i)
-            weights[i] = 1.0/k;
-        OptimizationRequest or = new OptimizationRequest();
         double[][] halfP = new double[completeIndices.size()][k];
         for (int j=0; j<k; ++j) {
             Instance nb = completeData.get(nearestIndices[j]);
@@ -119,24 +115,19 @@ public class LLR extends AbstractClassifier {
         for (int i=0; i<completeIndices.size(); ++i) {
             halfQ[i] = -instance.value(completeIndices.get(i));
         }
-        double[][] halfPt = matTranspose(halfP);
-        double[][] P = matMultiply(halfPt, halfP);
-        double[] Q = matMultiply(halfPt, halfQ);
-        PDQuadraticMultivariateRealFunction objective =
-                new PDQuadraticMultivariateRealFunction(P, Q, 0.0);
+        double[] nY = new double[k];
+        for (int i=0; i<k; ++i) {
+            nY[i] = -completeData.get(nearestIndices[i]).classValue();
+        }
+
+        DoubleMatrix2D A = DoubleFactory2D.dense.make(1, k, 1.0);
+        DoubleMatrix1D B = DoubleFactory1D.dense.make(1, 1.0);
         ConvexMultivariateRealFunction[] inequalities = new ConvexMultivariateRealFunction[k];
         double[][] identity = DoubleFactory2D.dense.diagonal(DoubleFactory1D.dense.make(k, -1.0)).toArray();
         for (int i=0; i<k; ++i)
             inequalities[i] = new LinearMultivariateRealFunction(identity[i], 0.0);
-        or.setF0(objective);
-        or.setFi(inequalities);
-        or.setA(DoubleFactory2D.dense.make(1, k, 1.0));
-        or.setB(DoubleFactory1D.dense.make(1, 1.0));
-        or.setInitialPoint(weights);
-        JOptimizer opt = new JOptimizer();
-        opt.setOptimizationRequest(or);
-        int retCode = opt.optimize();
-        weights = opt.getOptimizationResponse().getSolution();
+
+        double[] weights = emIterateForOptimalWeights(halfP, halfQ, nY, inequalities, A, B, k, completeIndices.size());
         Helper.checkNotNull("weights", weights);
         Helper.checkIntEqual(weights.length, k);
 
@@ -174,9 +165,103 @@ public class LLR extends AbstractClassifier {
         return classHist;
     }
 
+    protected double[] emIterateForOptimalWeights(double[][] halfP, double[] halfQ, double[] nY,
+                                                  ConvexMultivariateRealFunction[] inequalities,
+                                                  DoubleMatrix2D A, DoubleMatrix1D B,
+                                                  int k, int numCompleteAttributes) throws Exception {
+        double[] instanceWeights = new double[k];
+        for (int i=0; i<k; ++i)
+            instanceWeights[i] = 1.0/k;
+        double[] attributeWeights = new double[numCompleteAttributes];
+        for (int i=0; i<numCompleteAttributes; ++i)
+            attributeWeights[i] = 1.0;
+        double[][] halfPt = matTranspose(halfP);
+
+        //return initInstanceWeights;
+        int extraIterations = 0;
+        instanceWeights = solveOptimalInstanceWeights(halfP, halfPt, halfQ, inequalities, A, B, instanceWeights, attributeWeights);
+        for (int i=0; i<extraIterations; ++i) {
+            try {
+                attributeWeights = solveOptimalAttributeWeights(halfP, halfPt, nY, attributeWeights, instanceWeights);
+                instanceWeights = solveOptimalInstanceWeights(halfP, halfPt, halfQ, inequalities, A, B, instanceWeights, attributeWeights);
+            } catch (Exception e) {
+                System.out.println("==========> Failed once!");
+                break;
+            }
+        }
+        return instanceWeights;
+    }
+
+    protected double[] solveOptimalInstanceWeights(double[][] halfP, double[][] halfPt, double[] halfQ,
+                                                   ConvexMultivariateRealFunction[] inequalities,
+                                                   DoubleMatrix2D A, DoubleMatrix1D B,
+                                                   double[] initInstanceWeights,
+                                                   double[] attributeWeights) throws Exception {
+        double[][] nHalfPt = new double[halfPt.length][halfPt[0].length];
+        for (int j=0; j<halfPt[0].length; ++j) {
+            double w = attributeWeights[j] * attributeWeights[j];
+            for (int i = 0; i < halfPt.length; ++i)
+                nHalfPt[i][j] = halfPt[i][j] * w;
+        }
+        double[][] P = matMultiply(nHalfPt, halfP);
+        double[] Q = matMultiply(nHalfPt, halfQ);
+
+        OptimizationRequest or = new OptimizationRequest();
+        PDQuadraticMultivariateRealFunction objective =
+                new PDQuadraticMultivariateRealFunction(P, Q, 0.0);
+        or.setF0(objective);
+        or.setFi(inequalities);
+        or.setA(A);
+        or.setB(B);
+        or.setInitialPoint(initInstanceWeights);
+        or.setTolerance(1e-3);
+        JOptimizer opt = new JOptimizer();
+        opt.setOptimizationRequest(or);
+        int retCode = opt.optimize();
+        return opt.getOptimizationResponse().getSolution();
+    }
+
+    protected double[] solveOptimalAttributeWeights(double[][] halfP, double[][] halfPt, double[] nY,
+                                                    double[] initAttributeWeights, double[] instanceWeights) throws Exception {
+        double[][] nHalfP = new double[halfP.length][halfP[0].length];
+        for (int j=0; j<halfP[0].length; ++j) {
+            double w = instanceWeights[j] * instanceWeights[j];
+            for (int i = 0; i < halfP.length; ++i)
+                nHalfP[i][j] = halfP[i][j] * w;
+        }
+        double[][] P = matMultiply(nHalfP, halfPt);
+        double[] Q = matMultiply(nHalfP, nY);
+        OptimizationRequest or = new OptimizationRequest();
+        PDQuadraticMultivariateRealFunction objective =
+                new PDQuadraticMultivariateRealFunction(P, Q, 0.0);
+        or.setF0(objective);
+        or.setInitialPoint(initAttributeWeights);
+        // or.setTolerance(1e-3);
+        JOptimizer opt = new JOptimizer();
+        opt.setOptimizationRequest(or);
+        int retCode = opt.optimize();
+        return opt.getOptimizationResponse().getSolution();
+    }
+
     @Override
     public Capabilities getCapabilities() {
-        return null;
+        Capabilities result = super.getCapabilities();
+        result.disableAll();
+
+        // attributes
+        result.enable(Capabilities.Capability.NOMINAL_ATTRIBUTES);
+        result.enable(Capabilities.Capability.NUMERIC_ATTRIBUTES);
+        result.enable(Capabilities.Capability.MISSING_VALUES);
+
+        // class
+        result.enable(Capabilities.Capability.NOMINAL_CLASS);
+        result.enable(Capabilities.Capability.NUMERIC_CLASS);
+        result.enable(Capabilities.Capability.MISSING_CLASS_VALUES);
+
+        // instances
+        result.setMinimumNumberInstances(MIN_INSTANCES_TO_TRAIN);
+
+        return result;
     }
 
     protected static double distance(Instance a, Instance b, List<Integer> caredIndices) {
@@ -198,7 +283,7 @@ public class LLR extends AbstractClassifier {
         return d;
     }
 
-    public static double[][] matTranspose(double[][] m) {
+    protected static double[][] matTranspose(double[][] m) {
         Helper.checkNotNull("m", m);
         Helper.checkPositive("rows", m.length);
         Helper.checkPositive("columns", m[0].length);
@@ -211,7 +296,7 @@ public class LLR extends AbstractClassifier {
         return mt;
     }
 
-    public static double[][] matMultiply(double[][] a, double[][] b) {
+    protected static double[][] matMultiply(double[][] a, double[][] b) {
         Helper.checkNotNull("a", a);
         Helper.checkPositive("a.rows", a.length);
         Helper.checkPositive("a.columns", a[0].length);
@@ -235,7 +320,7 @@ public class LLR extends AbstractClassifier {
         return prod;
     }
 
-    public static double[] matMultiply(double[][] a, double[] b) {
+    protected static double[] matMultiply(double[][] a, double[] b) {
         Helper.checkNotNull("b", b);
         Helper.checkPositive("b.size", b.length);
 

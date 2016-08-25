@@ -50,17 +50,17 @@ public class Main {
     public static void main(String[] args) {
         try {
             HashMap<String, Integer> dataSetClassIndex = createDataSetClassIndex();
-            double[] missingRatios = {0.0, 0.01, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5};
+            double[] missingRatios = {0.0, 0.2, 0.5};//{0.0, 0.01, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5};
             int missRepeat = 30;
 
-            String dataSetName = "iris";
+            String dataSetName = "wine";
             String originalFile = "/home/fatty/Mining/SA/" + dataSetName + ".arff";
             int classIndex = dataSetClassIndex.get(dataSetName);
             Instances original = ConverterUtils.DataSource.read(originalFile);
-            original.setClassIndex(original.numAttributes()-1);
+            original.setClassIndex(dataSetClassIndex.get(dataSetName));
 
             if (false) {
-                Classifier classifier = new LLR(20);
+                Classifier classifier = new LLR(10);
                 classifier.buildClassifier(original);
                 int correct = 0;
                 for (int i=0; i<original.numInstances(); ++i) {
@@ -86,7 +86,7 @@ public class Main {
                     IBk classifier = new FastLLR();
                     classifier.setNearestNeighbourSearchAlgorithm(new FilteredNeighbourSearch());
                     classifier.setKNN(20);
-                    correctRate += evaluateDataSet(missed, classifier);
+                    correctRate += evaluateDataSet(missed, new LLR(6));
                 }
                 correctRate /= missRepeat;
                 System.out.println("Accuracy for missing ratio " + missingRatio + ": " + correctRate);
