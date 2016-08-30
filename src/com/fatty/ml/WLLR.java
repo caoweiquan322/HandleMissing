@@ -4,9 +4,7 @@ import cern.colt.matrix.DoubleFactory1D;
 import cern.colt.matrix.DoubleFactory2D;
 import cern.colt.matrix.DoubleMatrix1D;
 import cern.colt.matrix.DoubleMatrix2D;
-import cern.colt.matrix.impl.DenseDoubleMatrix2D;
 import cern.colt.matrix.linalg.Algebra;
-import cern.colt.matrix.linalg.SingularValueDecomposition;
 import com.fatty.Helper;
 import com.joptimizer.functions.ConvexMultivariateRealFunction;
 import com.joptimizer.functions.LinearMultivariateRealFunction;
@@ -16,27 +14,30 @@ import com.joptimizer.optimizers.OptimizationRequest;
 import weka.classifiers.AbstractClassifier;
 import weka.classifiers.functions.LinearRegression;
 import weka.core.*;
+import weka.filters.Filter;
+import weka.filters.supervised.attribute.NominalToBinary;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
 /**
- * Created by fatty on 16-8-23.
+ * Created by fatty on 16-8-30.
  */
-public class LLR extends AbstractClassifier {
+public class WLLR extends AbstractClassifier {
     public static int MIN_INSTANCES_TO_TRAIN = 3;
     public static int MIN_ATTRIBUTE_TO_RECONSTRUCT = 2;
     private Instances completeData;
     private int initK;
+    private NominalToBinary nominalFilter;
     private double[] regressionCoef;
 
-    public LLR() {
+    public WLLR() {
         this.initK = 20;
         this.completeData = null;
     }
 
-    public LLR(int initK) {
+    public WLLR(int initK) {
         this.initK = initK;
         this.completeData = null;
     }
@@ -57,11 +58,21 @@ public class LLR extends AbstractClassifier {
         if (completeData.numInstances() < MIN_INSTANCES_TO_TRAIN) {
             throw new Exception("Number of complete instances is too few to train a LLR classifier.");
         }
+
+        // The filter to handle nominal data.
+        nominalFilter = new NominalToBinary();
+        nominalFilter.setInputFormat(completeData);
+        completeData = Filter.useFilter(completeData, nominalFilter);
+
         // Estimate the regression coefficients.
         LinearRegression lr = new LinearRegression();
         lr.buildClassifier(completeData);
         regressionCoef = lr.coefficients();
-        System.out.println(regressionCoef);
+
+//        for (double c : regressionCoef) {
+//            System.out.print("," + c);
+//        }
+//        System.out.println();
     }
 
     @Override
@@ -79,6 +90,13 @@ public class LLR extends AbstractClassifier {
     public double[] distributionForInstance(Instance instance) throws Exception {
         Helper.checkNotNull("Trained complete data", completeData);
         Helper.checkPositive("Trained instances number", completeData.numInstances());
+        Helper.checkNotNull("nominalFilter", nominalFilter);
+
+        // Filter instance.
+        nominalFilter.input(instance);
+        nominalFilter.batchFinished();
+        instance = nominalFilter.output();
+
         if (!instance.equalHeaders(completeData.get(0))) {
             throw new Exception("The instance headers do not match.");
         }
@@ -136,7 +154,7 @@ public class LLR extends AbstractClassifier {
         for (int i=0; i<k; ++i)
             inequalities[i] = new LinearMultivariateRealFunction(identity[i], 0.0);
 
-        double[] weights = emIterateForOptimalWeights(halfP, halfQ, nY, inequalities, A, B, k, completeIndices.size());
+        double[] weights = emIterateForOptimalWeights(halfP, halfQ, nY, inequalities, A, B, k, completeIndices);
         Helper.checkNotNull("weights", weights);
         Helper.checkIntEqual(weights.length, k);
 
@@ -177,7 +195,8 @@ public class LLR extends AbstractClassifier {
     protected double[] emIterateForOptimalWeights(double[][] halfP, double[] halfQ, double[] nY,
                                                   ConvexMultivariateRealFunction[] inequalities,
                                                   DoubleMatrix2D A, DoubleMatrix1D B,
-                                                  int k, int numCompleteAttributes) throws Exception {
+                                                  int k, List<Integer> completeIndices) throws Exception {
+        int numCompleteAttributes = completeIndices.size();
         double[] instanceWeights = new double[k];
         for (int i=0; i<k; ++i)
             instanceWeights[i] = 1.0/k;
@@ -191,24 +210,8 @@ public class LLR extends AbstractClassifier {
         //instanceWeights = solveOptimalInstanceWeights(halfP, halfPt, halfQ, inequalities, A, B, instanceWeights, attributeWeights);
         for (int i=0; i<extraIterations; ++i) {
             try {
-//                attributeWeights = solveOptimalAttributeWeights(halfP, halfPt, nY, attributeWeights, instanceWeights);
-
-//                attributeWeights = regressionCoef;
-//                double minVal = 1e5;
-//                for (int j=0; j<numCompleteAttributes; ++j) {
-//                    if (Math.abs(attributeWeights[j]) > 1e-3) {
-//                        if (Math.abs(attributeWeights[j]) < minVal) {
-//                            minVal = Math.abs(attributeWeights[j]);
-//                        }
-//                    }
-//                }
-//                for (int j=0; j<numCompleteAttributes; ++j) {
-//                    attributeWeights[j] /= minVal;
-//                }
-
-//                for (double w : attributeWeights)
-//                    System.out.print(", " + w);
-//                System.out.println();
+                for (int j=0; j<numCompleteAttributes; ++j)
+                    attributeWeights[j] = regressionCoef[completeIndices.get(j)];
             } catch (Exception e) {
                 System.out.println("Error solve regression. Details: " + e.getMessage());
                 break;
@@ -310,20 +313,20 @@ public class LLR extends AbstractClassifier {
         return result;
     }
 
-    protected static double distance(Instance a, Instance b, List<Integer> caredIndices) {
+    protected double distance(Instance a, Instance b, List<Integer> caredIndices) {
         double d = 0;
         double va, vb;
         if (caredIndices == null) {
             for (int i=0; i<a.numAttributes(); ++i) {
                 va = a.value(i);
                 vb = b.value(i);
-                d += Math.sqrt((va-vb)*(va-vb));
+                d += Math.abs(regressionCoef[i])*Math.sqrt((va-vb)*(va-vb));
             }
         } else {
             for (int i: caredIndices) {
                 va = a.value(i);
                 vb = b.value(i);
-                d += Math.sqrt((va-vb)*(va-vb));
+                d += Math.abs(regressionCoef[i])*Math.sqrt((va-vb)*(va-vb));
             }
         }
         return d;
@@ -396,3 +399,4 @@ public class LLR extends AbstractClassifier {
         return null;
     }
 }
+
