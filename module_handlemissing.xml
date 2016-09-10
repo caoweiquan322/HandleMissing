@@ -71,15 +71,15 @@
   
   <target name="compile.module.handlemissing" depends="compile.module.handlemissing.production,compile.module.handlemissing.tests" description="Compile module HandleMissing"/>
   
-  <target name="compile.module.handlemissing.production" depends="register.custom.compilers" description="Compile module HandleMissing; production classes">
+  <target name="compile.module.handlemissing.production" description="Compile module HandleMissing; production classes">
     <mkdir dir="${handlemissing.output.dir}"/>
-    <javac2 destdir="${handlemissing.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.handlemissing}/javac">
+    <javac destdir="${handlemissing.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.handlemissing}/javac">
       <compilerarg line="${compiler.args.handlemissing}"/>
       <bootclasspath refid="handlemissing.module.bootclasspath"/>
       <classpath refid="handlemissing.module.production.classpath"/>
       <src refid="handlemissing.module.sourcepath"/>
       <patternset refid="excluded.from.compilation.handlemissing"/>
-    </javac2>
+    </javac>
     
     <copy todir="${handlemissing.output.dir}">
       <fileset dir="${module.handlemissing.basedir}/src">
@@ -89,7 +89,7 @@
     </copy>
   </target>
   
-  <target name="compile.module.handlemissing.tests" depends="register.custom.compilers,compile.module.handlemissing.production" description="compile module HandleMissing; test classes" unless="skip.tests"/>
+  <target name="compile.module.handlemissing.tests" depends="compile.module.handlemissing.production" description="compile module HandleMissing; test classes" unless="skip.tests"/>
   
   <target name="clean.module.handlemissing" description="cleanup module">
     <delete dir="${handlemissing.output.dir}"/>

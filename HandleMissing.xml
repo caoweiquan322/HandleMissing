@@ -56,45 +56,6 @@
     <exclude name="**/?*.aj"/>
   </patternset>
   
-  <!-- JDK definitions -->
-  
-  <property name="jdk.bin.1.8" value="${jdk.home.1.8}/bin"/>
-  <path id="jdk.classpath.1.8">
-    <fileset dir="${jdk.home.1.8}">
-      <include name="jre/lib/charsets.jar"/>
-      <include name="jre/lib/deploy.jar"/>
-      <include name="jre/lib/ext/cldrdata.jar"/>
-      <include name="jre/lib/ext/dnsns.jar"/>
-      <include name="jre/lib/ext/jfxrt.jar"/>
-      <include name="jre/lib/ext/localedata.jar"/>
-      <include name="jre/lib/ext/nashorn.jar"/>
-      <include name="jre/lib/ext/sunec.jar"/>
-      <include name="jre/lib/ext/sunjce_provider.jar"/>
-      <include name="jre/lib/ext/sunpkcs11.jar"/>
-      <include name="jre/lib/ext/zipfs.jar"/>
-      <include name="jre/lib/htmlconverter.jar"/>
-      <include name="jre/lib/javaws.jar"/>
-      <include name="jre/lib/jce.jar"/>
-      <include name="jre/lib/jfr.jar"/>
-      <include name="jre/lib/jfxswt.jar"/>
-      <include name="jre/lib/jsse.jar"/>
-      <include name="jre/lib/management-agent.jar"/>
-      <include name="jre/lib/plugin.jar"/>
-      <include name="jre/lib/resources.jar"/>
-      <include name="jre/lib/rt.jar"/>
-      <include name="lib/ant-javafx.jar"/>
-      <include name="lib/dt.jar"/>
-      <include name="lib/javafx-mx.jar"/>
-      <include name="lib/jconsole.jar"/>
-      <include name="lib/sa-jdi.jar"/>
-      <include name="lib/tools.jar"/>
-    </fileset>
-  </path>
-  
-  <property name="project.jdk.home" value="${jdk.home.1.8}"/>
-  <property name="project.jdk.bin" value="${jdk.bin.1.8}"/>
-  <property name="project.jdk.classpath" value="jdk.classpath.1.8"/>
-  
   
   <!-- Project Libraries -->
   
@@ -124,22 +85,103 @@
   <path id="library.weka-src.classpath">
     <pathelement location="${basedir}/lib/weka.jar"/>
   </path>
-  <!-- Register Custom Compiler Taskdefs -->
-  <property name="javac2.home" value="${idea.home}/lib"/>
-  <path id="javac2.classpath">
-    <pathelement location="${javac2.home}/javac2.jar"/>
-    <pathelement location="${javac2.home}/jdom.jar"/>
-    <pathelement location="${javac2.home}/asm-all.jar"/>
-    <pathelement location="${javac2.home}/jgoodies-forms.jar"/>
-  </path>
-  <target name="register.custom.compilers">
-    <taskdef name="javac2" classname="com.intellij.ant.Javac2" classpathref="javac2.classpath"/>
-    <taskdef name="instrumentIdeaExtensions" classname="com.intellij.ant.InstrumentIdeaExtensions" classpathref="javac2.classpath"/>
-  </target>
   
   <!-- Modules -->
   
-  <import file="${basedir}/module_handlemissing.xml"/>
+  
+  <!-- Module HandleMissing -->
+  
+  <dirname property="module.handlemissing.basedir" file="${ant.file}"/>
+  
+  
+  
+  <property name="compiler.args.handlemissing" value="-encoding UTF-8 -source 8 -target 8 ${compiler.args}"/>
+  
+  <property name="handlemissing.output.dir" value="${module.handlemissing.basedir}/out/production/HandleMissing"/>
+  <property name="handlemissing.testoutput.dir" value="${module.handlemissing.basedir}/out/test/HandleMissing"/>
+  
+  <path id="handlemissing.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="handlemissing.module.production.classpath">
+    <path refid="library.weka-src.classpath"/>
+    <path refid="library.joptimizer-3.5.1.classpath"/>
+    <path refid="library.joptimizer-depends.classpath"/>
+    <path refid="library.java-graphs-0.28.classpath"/>
+    <path refid="library.java-graphs-0.28-javadoc.classpath"/>
+  </path>
+  
+  <path id="handlemissing.runtime.production.module.classpath">
+    <pathelement location="${handlemissing.output.dir}"/>
+    <path refid="library.weka-src.classpath"/>
+    <path refid="library.joptimizer-3.5.1.classpath"/>
+    <path refid="library.joptimizer-depends.classpath"/>
+    <path refid="library.java-graphs-0.28.classpath"/>
+    <path refid="library.java-graphs-0.28-javadoc.classpath"/>
+  </path>
+  
+  <path id="handlemissing.module.classpath">
+    <pathelement location="${handlemissing.output.dir}"/>
+    <path refid="library.weka-src.classpath"/>
+    <path refid="library.joptimizer-3.5.1.classpath"/>
+    <path refid="library.joptimizer-depends.classpath"/>
+    <path refid="library.java-graphs-0.28.classpath"/>
+    <path refid="library.java-graphs-0.28-javadoc.classpath"/>
+  </path>
+  
+  <path id="handlemissing.runtime.module.classpath">
+    <pathelement location="${handlemissing.testoutput.dir}"/>
+    <pathelement location="${handlemissing.output.dir}"/>
+    <path refid="library.weka-src.classpath"/>
+    <path refid="library.joptimizer-3.5.1.classpath"/>
+    <path refid="library.joptimizer-depends.classpath"/>
+    <path refid="library.java-graphs-0.28.classpath"/>
+    <path refid="library.java-graphs-0.28-javadoc.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.handlemissing">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.handlemissing">
+    <patternset refid="excluded.from.module.handlemissing"/>
+  </patternset>
+  
+  <path id="handlemissing.module.sourcepath">
+    <dirset dir="${module.handlemissing.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.handlemissing" depends="compile.module.handlemissing.production,compile.module.handlemissing.tests" description="Compile module HandleMissing"/>
+  
+  <target name="compile.module.handlemissing.production" description="Compile module HandleMissing; production classes">
+    <mkdir dir="${handlemissing.output.dir}"/>
+    <javac destdir="${handlemissing.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true">
+      <compilerarg line="${compiler.args.handlemissing}"/>
+      <bootclasspath refid="handlemissing.module.bootclasspath"/>
+      <classpath refid="handlemissing.module.production.classpath"/>
+      <src refid="handlemissing.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.handlemissing"/>
+    </javac>
+    
+    <copy todir="${handlemissing.output.dir}">
+      <fileset dir="${module.handlemissing.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.handlemissing.tests" depends="compile.module.handlemissing.production" description="compile module HandleMissing; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.handlemissing" description="cleanup module">
+    <delete dir="${handlemissing.output.dir}"/>
+    <delete dir="${handlemissing.testoutput.dir}"/>
+  </target>
   
   <target name="init" description="Build initialization">
     <!-- Perform any build initialization in this target -->
