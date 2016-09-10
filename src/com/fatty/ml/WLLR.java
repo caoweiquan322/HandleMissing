@@ -11,6 +11,7 @@ import com.joptimizer.functions.LinearMultivariateRealFunction;
 import com.joptimizer.functions.PDQuadraticMultivariateRealFunction;
 import com.joptimizer.optimizers.JOptimizer;
 import com.joptimizer.optimizers.OptimizationRequest;
+import org.w3c.dom.Attr;
 import weka.classifiers.AbstractClassifier;
 import weka.classifiers.functions.LinearRegression;
 import weka.core.*;
@@ -27,13 +28,14 @@ import java.util.List;
 public class WLLR extends AbstractClassifier {
     public static int MIN_INSTANCES_TO_TRAIN = 3;
     public static int MIN_ATTRIBUTE_TO_RECONSTRUCT = 2;
+    private static int DEFAULT_K = 50;
     private Instances completeData;
     private int initK;
     private NominalToBinary nominalFilter;
     private double[] regressionCoef;
 
     public WLLR() {
-        this.initK = 20;
+        this.initK = DEFAULT_K;
         this.completeData = null;
     }
 
@@ -66,13 +68,36 @@ public class WLLR extends AbstractClassifier {
 
         // Estimate the regression coefficients.
         LinearRegression lr = new LinearRegression();
-        lr.buildClassifier(completeData);
+        lr.buildClassifier(handleClassNominal(completeData));
         regressionCoef = lr.coefficients();
+        completeData.classAttribute();
 
 //        for (double c : regressionCoef) {
 //            System.out.print("," + c);
 //        }
 //        System.out.println();
+    }
+
+    protected static Instances handleClassNominal(Instances instances) {
+        if (instances.classAttribute().isNumeric())
+            return instances;
+        // Create header.
+        ArrayList<Attribute> attributes = new ArrayList<>();
+        for (int i=0; i<instances.numAttributes(); ++i) {
+            Attribute numeric = new Attribute(instances.attribute(i).name());
+            attributes.add(numeric);
+        }
+        Instances retDataSet = new Instances(instances.relationName(), attributes, instances.numInstances());
+        // Fill in data.
+        for (int i=0; i<instances.numInstances(); ++i) {
+            double[] vals = new double[instances.numAttributes()];
+            for (int j=0; j<instances.numAttributes(); ++j) {
+                vals[j] = instances.get(i).value(j);
+            }
+            retDataSet.add(new DenseInstance(1.0, vals));
+        }
+        retDataSet.setClassIndex(instances.classIndex());
+        return retDataSet;
     }
 
     @Override
@@ -200,6 +225,8 @@ public class WLLR extends AbstractClassifier {
         double[] instanceWeights = new double[k];
         for (int i=0; i<k; ++i)
             instanceWeights[i] = 1.0/k;
+        if (k==1)
+            return instanceWeights;
         double[] attributeWeights = new double[numCompleteAttributes];
         for (int i=0; i<numCompleteAttributes; ++i)
             attributeWeights[i] = 1.0;

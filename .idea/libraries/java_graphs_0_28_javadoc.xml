@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="java-graphs-0.28-javadoc">
+    <CLASSES />
+    <JAVADOC>
+      <root url="jar://$PROJECT_DIR$/lib/java-graphs-0.28-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES />
+  </library>
+</component>

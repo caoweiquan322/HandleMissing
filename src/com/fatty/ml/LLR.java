@@ -4,9 +4,7 @@ import cern.colt.matrix.DoubleFactory1D;
 import cern.colt.matrix.DoubleFactory2D;
 import cern.colt.matrix.DoubleMatrix1D;
 import cern.colt.matrix.DoubleMatrix2D;
-import cern.colt.matrix.impl.DenseDoubleMatrix2D;
 import cern.colt.matrix.linalg.Algebra;
-import cern.colt.matrix.linalg.SingularValueDecomposition;
 import com.fatty.Helper;
 import com.joptimizer.functions.ConvexMultivariateRealFunction;
 import com.joptimizer.functions.LinearMultivariateRealFunction;
@@ -14,7 +12,6 @@ import com.joptimizer.functions.PDQuadraticMultivariateRealFunction;
 import com.joptimizer.optimizers.JOptimizer;
 import com.joptimizer.optimizers.OptimizationRequest;
 import weka.classifiers.AbstractClassifier;
-import weka.classifiers.functions.LinearRegression;
 import weka.core.*;
 
 import java.util.ArrayList;
@@ -25,20 +22,33 @@ import java.util.List;
  * Created by fatty on 16-8-23.
  */
 public class LLR extends AbstractClassifier {
-    public static int MIN_INSTANCES_TO_TRAIN = 3;
-    public static int MIN_ATTRIBUTE_TO_RECONSTRUCT = 2;
-    private Instances completeData;
-    private int initK;
-    private double[] regressionCoef;
+    protected static int MIN_INSTANCES_TO_TRAIN = 3;
+    protected static int MIN_ATTRIBUTE_TO_RECONSTRUCT = 2;
+    protected static int DEFAULT_K = 50;
+    protected Instances completeData;
+    protected int initK;
+
+    public void setStrategy(LLRStrategy strategy) {
+        this.strategy = strategy;
+    }
+
+    private LLRStrategy strategy;
+
+    enum LLRStrategy {
+        Average,
+        Optimize
+    }
 
     public LLR() {
-        this.initK = 20;
+        this.initK = DEFAULT_K;
         this.completeData = null;
+        this.strategy = LLRStrategy.Optimize;
     }
 
     public LLR(int initK) {
         this.initK = initK;
         this.completeData = null;
+        this.strategy = LLRStrategy.Optimize;
     }
 
     @Override
@@ -57,15 +67,16 @@ public class LLR extends AbstractClassifier {
         if (completeData.numInstances() < MIN_INSTANCES_TO_TRAIN) {
             throw new Exception("Number of complete instances is too few to train a LLR classifier.");
         }
-        // Estimate the regression coefficients.
-        LinearRegression lr = new LinearRegression();
-        lr.buildClassifier(completeData);
-        regressionCoef = lr.coefficients();
-        System.out.println(regressionCoef);
     }
 
     @Override
+    /**
+     * Classify an instance. Note that this operation will fill in the missing fields of instance.
+     */
     public double classifyInstance(Instance instance) throws Exception {
+        if (!instance.classIsMissing()) {
+            throw new Exception("The instance to classify is not missing class value.");
+        }
         double[] hist = distributionForInstance(instance);
 
         if (instance.classAttribute().isNominal()) {
@@ -103,42 +114,47 @@ public class LLR extends AbstractClassifier {
                     + MIN_ATTRIBUTE_TO_RECONSTRUCT + " is required.");
         }
 
-        // Calculate distances.
-        double[] distances = new double[numInstances];
-        for (int i=0; i<numInstances; ++i) {
-            distances[i] = distance(completeData.get(i), instance, completeIndices);
-        }
-
-        // Sort top-K nearest neighbours within O(N) time efficiently.
-        int[] nearestIndices = Helper.getLeastIndices(distances, k);
+        // Get indices of k-NN.
+        int[] nearestIndices = calculateKNN(instance, completeIndices, k);
+        // In case there are not exactly k neighbors returned.
+        if (k != nearestIndices.length)
+            k = nearestIndices.length;
 
         // Solve the QP for the best reconstruction.
-        double[][] halfP = new double[completeIndices.size()][k];
-        for (int j=0; j<k; ++j) {
-            Instance nb = completeData.get(nearestIndices[j]);
-            for (int i=0; i<completeIndices.size(); ++i) {
-                halfP[i][j] = nb.value(completeIndices.get(i));
+        double[] weights;
+        if (strategy == LLRStrategy.Average) { // Average strategy.
+            weights = new double[k];
+            for (int i=0; i<k; ++i)
+                weights[i] = 1.0/k;
+        } else { // Optimization strategy.
+
+            double[][] halfP = new double[completeIndices.size()][k];
+            for (int j = 0; j < k; ++j) {
+                Instance nb = completeData.get(nearestIndices[j]);
+                for (int i = 0; i < completeIndices.size(); ++i) {
+                    halfP[i][j] = nb.value(completeIndices.get(i));
+                }
             }
-        }
-        double[] halfQ = new double[completeIndices.size()];
-        for (int i=0; i<completeIndices.size(); ++i) {
-            halfQ[i] = -instance.value(completeIndices.get(i));
-        }
-        double[] nY = new double[k];
-        for (int i=0; i<k; ++i) {
-            nY[i] = -completeData.get(nearestIndices[i]).classValue();
-        }
+            double[] halfQ = new double[completeIndices.size()];
+            for (int i = 0; i < completeIndices.size(); ++i) {
+                halfQ[i] = -instance.value(completeIndices.get(i));
+            }
+            double[] nY = new double[k];
+            for (int i = 0; i < k; ++i) {
+                nY[i] = -completeData.get(nearestIndices[i]).classValue();
+            }
 
-        DoubleMatrix2D A = DoubleFactory2D.dense.make(1, k, 1.0);
-        DoubleMatrix1D B = DoubleFactory1D.dense.make(1, 1.0);
-        ConvexMultivariateRealFunction[] inequalities = new ConvexMultivariateRealFunction[k];
-        double[][] identity = DoubleFactory2D.dense.diagonal(DoubleFactory1D.dense.make(k, -1.0)).toArray();
-        for (int i=0; i<k; ++i)
-            inequalities[i] = new LinearMultivariateRealFunction(identity[i], 0.0);
+            DoubleMatrix2D A = DoubleFactory2D.dense.make(1, k, 1.0);
+            DoubleMatrix1D B = DoubleFactory1D.dense.make(1, 1.0);
+            ConvexMultivariateRealFunction[] inequalities = new ConvexMultivariateRealFunction[k];
+            double[][] identity = DoubleFactory2D.dense.diagonal(DoubleFactory1D.dense.make(k, -1.0)).toArray();
+            for (int i = 0; i < k; ++i)
+                inequalities[i] = new LinearMultivariateRealFunction(identity[i], 0.0);
 
-        double[] weights = emIterateForOptimalWeights(halfP, halfQ, nY, inequalities, A, B, k, completeIndices.size());
-        Helper.checkNotNull("weights", weights);
-        Helper.checkIntEqual(weights.length, k);
+            weights = emIterateForOptimalWeights(halfP, halfQ, nY, inequalities, A, B, k, completeIndices.size());
+            Helper.checkNotNull("weights", weights);
+            Helper.checkIntEqual(weights.length, k);
+        }
 
         // Output the imputed data.
         double[] classHist = null;
@@ -174,6 +190,18 @@ public class LLR extends AbstractClassifier {
         return classHist;
     }
 
+    protected int[] calculateKNN(Instance instance, List<Integer> completeIndices, int k) throws Exception {
+        // Calculate distances.
+        int numInstances = completeData.numInstances();
+        double[] distances = new double[numInstances];
+        for (int i=0; i<numInstances; ++i) {
+            distances[i] = distance(completeData.get(i), instance, completeIndices);
+        }
+
+        // Sort top-K nearest neighbours within O(N) time efficiently.
+        return Helper.getLeastIndices(distances, k);
+    }
+
     protected double[] emIterateForOptimalWeights(double[][] halfP, double[] halfQ, double[] nY,
                                                   ConvexMultivariateRealFunction[] inequalities,
                                                   DoubleMatrix2D A, DoubleMatrix1D B,
@@ -181,45 +209,16 @@ public class LLR extends AbstractClassifier {
         double[] instanceWeights = new double[k];
         for (int i=0; i<k; ++i)
             instanceWeights[i] = 1.0/k;
+
         double[] attributeWeights = new double[numCompleteAttributes];
         for (int i=0; i<numCompleteAttributes; ++i)
             attributeWeights[i] = 1.0;
         double[][] halfPt = matTranspose(halfP);
 
-        //return initInstanceWeights;
-        int extraIterations = 1;
-        //instanceWeights = solveOptimalInstanceWeights(halfP, halfPt, halfQ, inequalities, A, B, instanceWeights, attributeWeights);
-        for (int i=0; i<extraIterations; ++i) {
-            try {
-//                attributeWeights = solveOptimalAttributeWeights(halfP, halfPt, nY, attributeWeights, instanceWeights);
-
-//                attributeWeights = regressionCoef;
-//                double minVal = 1e5;
-//                for (int j=0; j<numCompleteAttributes; ++j) {
-//                    if (Math.abs(attributeWeights[j]) > 1e-3) {
-//                        if (Math.abs(attributeWeights[j]) < minVal) {
-//                            minVal = Math.abs(attributeWeights[j]);
-//                        }
-//                    }
-//                }
-//                for (int j=0; j<numCompleteAttributes; ++j) {
-//                    attributeWeights[j] /= minVal;
-//                }
-
-//                for (double w : attributeWeights)
-//                    System.out.print(", " + w);
-//                System.out.println();
-            } catch (Exception e) {
-                System.out.println("Error solve regression. Details: " + e.getMessage());
-                break;
-            }
-
-            try {
-                instanceWeights = solveOptimalInstanceWeights(halfP, halfPt, halfQ, inequalities, A, B, instanceWeights, attributeWeights);
-            } catch (Exception e) {
-                System.out.println("Error solve instance.");
-                break;
-            }
+        try {
+            instanceWeights = solveOptimalInstanceWeights(halfP, halfPt, halfQ, inequalities, A, B, instanceWeights, attributeWeights);
+        } catch (Exception e) {
+            System.out.println("Error solve instance. Details: " + e.getMessage());
         }
         return instanceWeights;
     }
@@ -246,7 +245,7 @@ public class LLR extends AbstractClassifier {
         or.setA(A);
         or.setB(B);
         or.setInitialPoint(initInstanceWeights);
-        or.setTolerance(1e-3);
+        //or.setTolerance(1e-3);
         JOptimizer opt = new JOptimizer();
         opt.setOptimizationRequest(or);
         int retCode = opt.optimize();
@@ -262,18 +261,11 @@ public class LLR extends AbstractClassifier {
                 nHalfP[i][j] = halfP[i][j] * w;
         }
         double[][] P = matMultiply(nHalfP, halfPt);
-//        for (int i=0; i<P.length; ++i)
-//            P[i][i] += 0.01;
         double[] Q = matMultiply(nHalfP, nY);
         DoubleMatrix2D matP = DoubleFactory2D.dense.make(P);
         DoubleMatrix2D matQ = DoubleFactory2D.dense.make(new double[][]{Q});
         matQ = Algebra.DEFAULT.transpose(matQ);
-//        System.out.println("Rank: " + Algebra.DEFAULT.rank(matP) + "/" + matP.rows());
-//        SingularValueDecomposition svd = new SingularValueDecomposition(matP);
-//        double[] vals = svd.getSingularValues();
-//        for (double val : vals)
-//            System.out.print(", " + val);
-//        System.out.println();
+
         DoubleMatrix2D ans = Algebra.DEFAULT.solve(matP, matQ);
         return Algebra.DEFAULT.transpose(ans).toArray()[0];
 

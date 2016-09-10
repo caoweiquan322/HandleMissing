@@ -1,132 +1,133 @@
 package com.fatty.ml;
 
-import weka.classifiers.lazy.IBk;
-import weka.core.Attribute;
+import com.fatty.Helper;
+import info.debatty.java.graphs.*;
+import info.debatty.java.graphs.build.NNDescent;
 import weka.core.Instance;
 import weka.core.Instances;
-import weka.core.Utils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by fatty on 16-8-24.
  */
-public class FastLLR extends IBk {
-    /** for serialization */
-    private static final long serialVersionUID = 6502780192411755343L;
+public class FastLLR extends LLR {
+    protected Graph<Instance> graph;
+    protected int classIndex = -1;
+    protected double speedup = 4.0;
 
-    /**
-     * IBk classifier. Simple instance-based learner that uses the class
-     * of the nearest k training instances for the class of the test
-     * instances.
-     *
-     * @param k the number of nearest neighbors to use for prediction
-     */
+    public FastLLR(int k, double speedup) {
+        super(k);
+        this.speedup = speedup;
+    }
+
     public FastLLR(int k) {
         super(k);
     }
 
-    /**
-     * IB1 classifer. Instance-based learner. Predicts the class of the
-     * single nearest training instance for each test instance.
-     */
     public FastLLR() {
         super();
     }
 
-    /**
-     * Calculates the class membership probabilities for the given test instance.
-     *
-     * @param instance the instance to be classified
-     * @return predicted class probability distribution
-     * @throws Exception if an error occurred during the prediction
-     */
-    public double [] distributionForInstance(Instance instance) throws Exception {
-        if (m_Train.numInstances() == 0) {
-            //throw new Exception("No training instances!");
-            return m_defaultModel.distributionForInstance(instance);
+    @Override
+    public void buildClassifier(Instances instances) throws Exception {
+        Helper.checkNotNull("instances", instances);
+        if (instances.classIndex() < 0) {
+            throw new Exception("The class index is not set yet.");
         }
-        if ((m_WindowSize > 0) && (m_Train.numInstances() > m_WindowSize)) {
-            m_kNNValid = false;
-            boolean deletedInstance=false;
-            while (m_Train.numInstances() > m_WindowSize) {
-                m_Train.delete(0);
+        classIndex = instances.classIndex();
+
+        completeData = new Instances(instances, 0);
+        for (Instance instance : instances) {
+            if (!instance.classIsMissing() && !instance.hasMissingValue()) {
+                completeData.add(instance);
             }
-            //rebuild datastructure KDTree currently can't delete
-            if(deletedInstance==true)
-                m_NNSearch.setInstances(m_Train);
+        }
+        if (completeData.numInstances() < MIN_INSTANCES_TO_TRAIN) {
+            throw new Exception("Number of complete instances is too few to train a LLR classifier.");
         }
 
-        // Select k by cross validation
-        if (!m_kNNValid && (m_CrossValidate) && (m_kNNUpper >= 1)) {
-            crossValidate();
+        // Build the k-NN graph.
+        buildKNNGraph();
+    }
+
+    protected void buildKNNGraph() {
+        // Create the nodes
+        int count = completeData.numInstances();
+        ArrayList<Node> nodes = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            // The value of our nodes will be weka instance.
+            nodes.add(new Node<>(String.valueOf(i), completeData.get(i)));
         }
 
-        m_NNSearch.addInstanceInfo(instance);
+        // Instantiate and configure the build algorithm
+        NNDescent builder = new NNDescent();
+        builder.setK(initK);
 
-        Instances neighbours = m_NNSearch.kNearestNeighbours(instance, m_kNN);
-        double [] distances = m_NNSearch.getDistances();
-        double [] distribution = makeDistribution( neighbours, distances );
+        // early termination coefficient
+        builder.setDelta(0.1);
 
-        return distribution;
+        // sampling coefficient
+        builder.setRho(0.2);
+
+        builder.setMaxIterations(10);
+
+        builder.setSimilarity(new SimilarityInterface<Instance>() {
+
+            @Override
+            public double similarity(Instance v1, Instance v2) {
+                // Ignore instance compatibility checking.
+                double diff = 0.0;
+                double a;
+                for (int i=0; i<v1.numAttributes(); ++i) {
+                    if (i != classIndex && !v1.isMissing(i) && !v2.isMissing(i)) {
+                        a = v1.value(i)-v2.value(i);
+                        diff += a * a;
+                    }
+                }
+                return 1.0 / (1.0 + Math.sqrt(diff));
+            }
+        });
+
+        // Run the algorithm and get computed graph
+        graph = builder.computeGraph(nodes);
     }
 
     /**
-     * Turn the list of nearest neighbors into a probability distribution.
-     *
-     * @param neighbours the list of nearest neighboring instances
-     * @param distances the distances of the neighbors
-     * @return the probability distribution
-     * @throws Exception if computation goes wrong or has no class attribute
+     * Note that the number k may to modified to adapt to needs.
+     * @param instance
+     * @param completeIndices
+     * @param k
+     * @return
+     * @throws Exception
      */
-    protected double [] makeDistribution(Instances neighbours, double[] distances)
-            throws Exception {
+    protected int[] calculateKNN(Instance instance, List<Integer> completeIndices, int k) throws Exception {
+        // Calculate distances.
+        NeighborList nl = graph.fastSearch(instance, k, speedup);
 
-        double total = 0, weight;
-        double [] distribution = new double [m_NumClasses];
-
-        // Set up a correction to the estimator
-        if (m_ClassType == Attribute.NOMINAL) {
-            for(int i = 0; i < m_NumClasses; i++) {
-                distribution[i] = 1.0 / Math.max(1,m_Train.numInstances());
-            }
-            total = (double)m_NumClasses / Math.max(1,m_Train.numInstances());
+        if (nl.size() != k) { // Adapt k if necessary.
+            if (nl.size() > 0)
+                k = nl.size();
+            else
+                throw new Exception("Expected get " + k + " neighbors but got " + nl.size());
         }
 
-        for(int i=0; i < neighbours.numInstances(); i++) {
-            // Collect class counts
-            Instance current = neighbours.instance(i);
-            distances[i] = distances[i]*distances[i];
-            distances[i] = Math.sqrt(distances[i]/m_NumAttributesUsed);
-            switch (m_DistanceWeighting) {
-                case WEIGHT_INVERSE:
-                    weight = 1.0 / (distances[i] + 0.001); // to avoid div by zero
-                    break;
-                case WEIGHT_SIMILARITY:
-                    weight = 1.0 - distances[i];
-                    break;
-                default:                                 // WEIGHT_NONE:
-                    weight = 1.0;
-                    break;
-            }
-            weight *= current.weight();
-            try {
-                switch (m_ClassType) {
-                    case Attribute.NOMINAL:
-                        distribution[(int)current.classValue()] += weight;
-                        break;
-                    case Attribute.NUMERIC:
-                        distribution[0] += current.classValue() * weight;
-                        break;
-                }
-            } catch (Exception ex) {
-                throw new Error("Data has no class attribute!");
-            }
-            total += weight;
+        int[] indices = new int[k];
+        int i=0;
+        Neighbor nb;
+        Iterator<Neighbor> itr = nl.iterator();
+        while (itr.hasNext()) {
+            nb = itr.next();
+            indices[i] = Integer.parseInt(nb.node.id);
+            ++i;
         }
+        return indices;
+    }
 
-        // Normalise distribution
-        if (total > 0) {
-            Utils.normalize(distribution, total);
-        }
-        return distribution;
+    protected double[] smoBasedLLRSolver(double[][] A, double b) {
+        return null;
     }
 }

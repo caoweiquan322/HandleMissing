@@ -2,4 +2,4 @@ out
 *.arff
 .DS_Store
 *.xrff
-
+*.class

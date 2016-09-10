@@ -10,5 +10,7 @@
     <orderEntry type="library" name="weka-src" level="project" />
     <orderEntry type="library" name="joptimizer-3.5.1" level="project" />
     <orderEntry type="library" name="joptimizer-depends" level="project" />
+    <orderEntry type="library" name="java-graphs-0.28" level="project" />
+    <orderEntry type="library" name="java-graphs-0.28-javadoc" level="project" />
   </component>
 </module>
