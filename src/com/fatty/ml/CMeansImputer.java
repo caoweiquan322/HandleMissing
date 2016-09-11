@@ -27,6 +27,7 @@ public class CMeansImputer extends AbstractImputer {
             complete.setClassIndex(-1);
             kMeans.buildClusterer(complete);
             Instances centroids = kMeans.getClusterCentroids();
+            Helper.setDataSetClassIndex(centroids, classIndex);
 
             Instances imputed = new Instances(instances);
             LLR llr = new LLR(1);
