@@ -321,7 +321,7 @@ public class LLR extends AbstractClassifier {
         return d;
     }
 
-    protected static double[][] matTranspose(double[][] m) {
+    public static double[][] matTranspose(double[][] m) {
         Helper.checkNotNull("m", m);
         Helper.checkPositive("rows", m.length);
         Helper.checkPositive("columns", m[0].length);
@@ -334,7 +334,7 @@ public class LLR extends AbstractClassifier {
         return mt;
     }
 
-    protected static double[][] matMultiply(double[][] a, double[][] b) {
+    public static double[][] matMultiply(double[][] a, double[][] b) {
         Helper.checkNotNull("a", a);
         Helper.checkPositive("a.rows", a.length);
         Helper.checkPositive("a.columns", a[0].length);
@@ -358,7 +358,7 @@ public class LLR extends AbstractClassifier {
         return prod;
     }
 
-    protected static double[] matMultiply(double[][] a, double[] b) {
+    public static double[] matMultiply(double[][] a, double[] b) {
         Helper.checkNotNull("b", b);
         Helper.checkPositive("b.size", b.length);
 

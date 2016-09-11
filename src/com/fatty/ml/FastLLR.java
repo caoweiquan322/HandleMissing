@@ -248,12 +248,12 @@ public class FastLLR extends LLR {
         double[] cnst = null;// Need be initialized in each iteration.
 
         // Iterations.
-        double sum0 = 0.0;
-        for (double x: vecSub(matMultiply(A, w), b)) {
-            //System.out.printf("%5.3f,", x);
-            sum0 += Math.abs(x);
-        }
-        System.out.printf("Itr: %04d, %8.6f\n", 0, sum0);
+//        double sum0 = 0.0;
+//        for (double x: vecSub(matMultiply(A, w), b)) {
+//            //System.out.printf("%5.3f,", x);
+//            sum0 += Math.abs(x);
+//        }
+//        System.out.printf("Itr: %04d, %8.6f\n", 0, sum0);
 
         double delta = 0.0, nwi;
         for (int itr=0; itr<MAX_ITR; ++itr) {
@@ -273,13 +273,13 @@ public class FastLLR extends LLR {
             }
 
             // Display the partial results.
-            double[] diff = vecSub(matMultiply(A, w), b);
-            double sum = 0.0;
-            for (double x: diff) {
-                //System.out.printf("%5.3f,", x);
-                sum += Math.abs(x);
-            }
-            System.out.printf("Itr: %04d, %8.6f\n", itr, sum);
+//            double[] diff = vecSub(matMultiply(A, w), b);
+//            double sum = 0.0;
+//            for (double x: diff) {
+//                //System.out.printf("%5.3f,", x);
+//                sum += Math.abs(x);
+//            }
+//            System.out.printf("Itr: %04d, %8.6f\n", itr, sum);
 
             // Optimized.
             if (!hasBreak)
@@ -289,7 +289,7 @@ public class FastLLR extends LLR {
         return w;
     }
 
-    protected static double[] diagonal(double[][] A) {
+    public static double[] diagonal(double[][] A) {
         Helper.checkIntEqual(A.length, A[0].length);
         int n = A.length;
         double[] d = new double[n];
@@ -298,15 +298,15 @@ public class FastLLR extends LLR {
         return d;
     }
 
-    protected static double[] vecSub(double[] a, double[] b) {
+    public static double[] vecSub(double[] a, double[] b) {
         return vecSub(a, b, 1.0, null);
     }
 
-    protected static double[] vecSub(double[] a, double[] b, double[] c) {
+    public static double[] vecSub(double[] a, double[] b, double[] c) {
         return vecSub(a, b, 1.0, c);
     }
 
-    protected static double[] vecSub(double[] a, double[] b, double bScale, double[] c) {
+    public static double[] vecSub(double[] a, double[] b, double bScale, double[] c) {
         Helper.checkIntEqual(a.length, b.length);
         int n = a.length;
         if (c==null)
@@ -316,19 +316,19 @@ public class FastLLR extends LLR {
         return c;
     }
 
-    protected static double[] vecAdd(double[] a, double[] b) {
+    public static double[] vecAdd(double[] a, double[] b) {
         return vecAdd(a, b, 1.0, null);
     }
 
-    protected static double[] vecAdd(double[] a, double[] b, double[] c) {
+    public static double[] vecAdd(double[] a, double[] b, double[] c) {
         return vecAdd(a, b, 1.0, c);
     }
 
-    protected static double[] vecAdd(double[] a, double[] b, double bScale, double[] c) {
+    public static double[] vecAdd(double[] a, double[] b, double bScale, double[] c) {
         return vecSub(a, b, -bScale, c);
     }
 
-    protected static double dotProd(double[] a, double[] b) {
+    public static double dotProd(double[] a, double[] b) {
         Helper.checkIntEqual(a.length, b.length);
         double prod = 0.0;
         for (int i=0; i<a.length; ++i)
