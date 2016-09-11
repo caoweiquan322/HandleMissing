@@ -135,8 +135,8 @@ public class Main {
             String dataSetName = "iris";
             int numInterruptColumns = 0;
             String originalFile;
-            if (args.length > 1)
-                originalFile = args[1] + "/" + dataSetName + ".arff";
+            if (args.length > 0)
+                originalFile = args[0] + "/" + dataSetName + ".arff";
             else
                 originalFile = "/Users/fatty/Downloads/ml_datasets_arff/" + dataSetName + ".arff";
             System.out.println("Processing data: " + originalFile);
