@@ -145,31 +145,23 @@ public class FastLLR extends LLR {
             for (int i=0; i<k; ++i)
                 weights[i] = 1.0/k;
         } else { // Optimization strategy.
-
-            double[][] halfP = new double[completeIndices.size()][k];
+            int d = completeIndices.size();
+            double[][] halfP = new double[d+1][k];
             for (int j = 0; j < k; ++j) {
                 Instance nb = completeData.get(nearestIndices[j]);
-                for (int i = 0; i < completeIndices.size(); ++i) {
+                for (int i = 0; i < d; ++i) {
                     halfP[i][j] = nb.value(completeIndices.get(i));
                 }
+                halfP[d][j] = 1.0;
             }
-            double[] halfQ = new double[completeIndices.size()];
-            for (int i = 0; i < completeIndices.size(); ++i) {
+            double[] halfQ = new double[d+1];
+            for (int i = 0; i < d; ++i) {
                 halfQ[i] = -instance.value(completeIndices.get(i));
             }
-            double[] nY = new double[k];
-            for (int i = 0; i < k; ++i) {
-                nY[i] = -completeData.get(nearestIndices[i]).classValue();
-            }
+            halfQ[d] = 1.0;
 
-            DoubleMatrix2D A = DoubleFactory2D.dense.make(1, k, 1.0);
-            DoubleMatrix1D B = DoubleFactory1D.dense.make(1, 1.0);
-            ConvexMultivariateRealFunction[] inequalities = new ConvexMultivariateRealFunction[k];
-            double[][] identity = DoubleFactory2D.dense.diagonal(DoubleFactory1D.dense.make(k, -1.0)).toArray();
-            for (int i = 0; i < k; ++i)
-                inequalities[i] = new LinearMultivariateRealFunction(identity[i], 0.0);
-
-            weights = emIterateForOptimalWeights(halfP, halfQ, nY, inequalities, A, B, k, completeIndices.size());
+            //weights = emIterateForOptimalWeights(halfP, halfQ, nY, inequalities, A, B, k, completeIndices.size());
+            weights = smoBasedLLRSolver(halfP, halfQ);
             Helper.checkNotNull("weights", weights);
             Helper.checkIntEqual(weights.length, k);
         }
@@ -239,7 +231,101 @@ public class FastLLR extends LLR {
         return indices;
     }
 
-    protected double[] smoBasedLLRSolver(double[][] A, double b) {
-        return null;
+    public static double[] smoBasedLLRSolver(double[][] A, double[] b) {
+        Helper.checkIntEqual(A.length, b.length);
+        int k = A[0].length;
+        int d = A.length;
+        double EPSILON = 1e-5;
+        int MAX_ITR = 10;
+
+        // Initialization.
+        double[] w = new double[k];
+        for (int i=0; i<k; ++i) w[i] = 1.0/k;
+        double[][] At = matTranspose(A);
+        double[][] AtA = matMultiply(At, A);
+        double[] q = diagonal(AtA);
+        double[] c = vecSub(matMultiply(A, w), b);
+        double[] alpha = matMultiply(At, c);
+        double[] cnst = null;// Need be initialized in each iteration.
+
+        // Iterations.
+        double delta = 0.0, nwi;
+        for (int itr=0; itr<MAX_ITR; ++itr) {
+            boolean hasBreak = false;
+            for (int i = 0; i < k; ++i) {
+                if (Math.abs(alpha[i]) > EPSILON && Math.abs(w[i]) > EPSILON) {
+                    hasBreak = true;
+                    cnst = vecSub(c, At[i], w[i], cnst); // Update the const part of the 1-d optimization problem.
+                    nwi = -dotProd(At[i], cnst)/q[i]; // Update the solution vector.
+                    if (nwi<0) nwi=0;
+                    if (nwi>1) nwi=1.0;
+                    delta = nwi - w[i];
+                    w[i] += nwi;
+                    c = vecAdd(c, At[i], delta, c);
+                    alpha = vecAdd(alpha, AtA[i], delta, alpha);
+
+                    // Display the partial results.
+                    double[] diff = vecSub(matMultiply(A, w), b);
+                    double sum = 0.0;
+                    for (double x: diff) {
+                        //System.out.printf("%5.3f,", x);
+                        sum += Math.abs(x);
+                    }
+                    System.out.printf("%5.3f\n", sum);
+                }
+            }
+            // Optimized.
+            if (!hasBreak)
+                break;
+        }
+
+        return w;
+    }
+
+    protected static double[] diagonal(double[][] A) {
+        Helper.checkIntEqual(A.length, A[0].length);
+        int n = A.length;
+        double[] d = new double[n];
+        for (int i=0; i<n; ++i)
+            d[i] = A[i][i];
+        return d;
+    }
+
+    protected static double[] vecSub(double[] a, double[] b) {
+        return vecSub(a, b, 1.0, null);
+    }
+
+    protected static double[] vecSub(double[] a, double[] b, double[] c) {
+        return vecSub(a, b, 1.0, c);
+    }
+
+    protected static double[] vecSub(double[] a, double[] b, double bScale, double[] c) {
+        Helper.checkIntEqual(a.length, b.length);
+        int n = a.length;
+        if (c==null)
+            c = new double[n];
+        for (int i=0; i<n; ++i)
+            c[i] = a[i]-b[i]*bScale;
+        return c;
+    }
+
+    protected static double[] vecAdd(double[] a, double[] b) {
+        return vecAdd(a, b, 1.0, null);
+    }
+
+    protected static double[] vecAdd(double[] a, double[] b, double[] c) {
+        return vecAdd(a, b, 1.0, c);
+    }
+
+    protected static double[] vecAdd(double[] a, double[] b, double bScale, double[] c) {
+        return vecSub(a, b, -bScale, c);
+    }
+
+    protected static double dotProd(double[] a, double[] b) {
+        Helper.checkIntEqual(a.length, b.length);
+        double prod = 0.0;
+        for (int i=0; i<a.length; ++i)
+            prod += a[i]*b[i];
+        return prod;
     }
 }
