@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="de84bacf-5c17-44e9-823b-a8b1c5f42182" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/fatty/ml/GMMImputer.java" afterPath="$PROJECT_DIR$/src/com/fatty/ml/GMMImputer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/fatty/ml/Main.java" afterPath="$PROJECT_DIR$/src/com/fatty/ml/Main.java" />
     </list>
     <ignored path="HandleMissing.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -26,12 +26,18 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Main.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Main.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/com/fatty/ml/Main.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-510">
-              <caret line="44" column="35" selection-start-line="44" selection-start-column="35" selection-end-line="44" selection-end-column="35" />
-              <folding />
+            <state relative-caret-position="435">
+              <caret line="178" column="41" selection-start-line="178" selection-start-column="41" selection-end-line="178" selection-end-column="41" />
+              <folding>
+                <element signature="method#evaluateDataSet#0;class#Main#0" expanded="false" />
+                <element signature="method#addNoiseColumns#0;class#Main#0" expanded="false" />
+                <element signature="method#normalize#0;class#Main#0" expanded="false" />
+                <element signature="method#nominalToNumeric#0;class#Main#0" expanded="false" />
+                <element signature="method#checkMissingRatio#0;class#Main#0" expanded="false" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -46,7 +52,7 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="GMMImputer.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="GMMImputer.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/com/fatty/ml/GMMImputer.java">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="334">
@@ -54,16 +60,6 @@
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Estimator.java" pinned="false" current-in-tab="false">
-        <entry file="jar://$PROJECT_DIR$/lib/weka-src.jar!/src/main/java/weka/estimators/Estimator.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1836">
-              <caret line="93" column="22" selection-start-line="93" selection-start-column="22" selection-end-line="93" selection-end-column="22" />
-              <folding />
             </state>
           </provider>
         </entry>
@@ -120,8 +116,8 @@
         <option value="$PROJECT_DIR$/src/com/fatty/ml/unimputed/UnimputedM5P.java" />
         <option value="$PROJECT_DIR$/batch_pull.py" />
         <option value="$PROJECT_DIR$/src/com/fatty/ml/CMeansImputer.java" />
-        <option value="$PROJECT_DIR$/src/com/fatty/ml/Main.java" />
         <option value="$PROJECT_DIR$/src/com/fatty/ml/GMMImputer.java" />
+        <option value="$PROJECT_DIR$/src/com/fatty/ml/Main.java" />
       </list>
     </option>
   </component>
@@ -564,13 +560,6 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="jar://$PROJECT_DIR$/lib/java-graphs-0.28.jar!/info/debatty/java/graphs/Graph.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="476">
-          <caret line="341" column="17" selection-start-line="341" selection-start-column="17" selection-end-line="341" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://$PROJECT_DIR$/lib/java-graphs-0.28.jar!/info/debatty/java/graphs/StatisticsContainer.class">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="266">
@@ -938,14 +927,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/fatty/ml/Main.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-510">
-          <caret line="44" column="35" selection-start-line="44" selection-start-column="35" selection-end-line="44" selection-end-column="35" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/com/fatty/ml/HotDeckImputer.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="240">
@@ -979,6 +960,28 @@
           <caret line="39" column="41" selection-start-line="39" selection-start-column="41" selection-end-line="39" selection-end-column="41" />
           <folding>
             <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/fatty/Helper.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1455">
+          <caret line="10" column="13" selection-start-line="10" selection-start-column="13" selection-end-line="10" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/fatty/ml/Main.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="435">
+          <caret line="178" column="41" selection-start-line="178" selection-start-column="41" selection-end-line="178" selection-end-column="41" />
+          <folding>
+            <element signature="method#evaluateDataSet#0;class#Main#0" expanded="false" />
+            <element signature="method#addNoiseColumns#0;class#Main#0" expanded="false" />
+            <element signature="method#normalize#0;class#Main#0" expanded="false" />
+            <element signature="method#nominalToNumeric#0;class#Main#0" expanded="false" />
+            <element signature="method#checkMissingRatio#0;class#Main#0" expanded="false" />
           </folding>
         </state>
       </provider>

@@ -125,19 +125,26 @@ public class Main {
     }
 
     public static void main(String[] args) throws Exception {
+        for (String dataset: createDataSetClassIndex().keySet()) {
+            System.out.println("Processing dataset: " + dataset);
+            demo(dataset, args);
+        }
+    }
+
+    public static void demo(String dataSetName, String[] args) throws Exception {
         try {
             // The global map to use.
             HashMap<String, Integer> dataSetClassIndex = createDataSetClassIndex();
 
             // Specify the dataset.
-            String dataSetName = "stock";
+            //String dataSetName = "stock";
             int numInterruptColumns = 0;
             String originalFile;
             if (args.length > 0)
                 originalFile = args[0] + "/" + dataSetName + ".arff";
             else
                 originalFile = "/Users/fatty/Downloads/ml_datasets_arff/" + dataSetName + ".arff";
-            System.out.println("Processing data: " + originalFile);
+            System.out.println("\n\nProcessing data: " + originalFile);
             int classIndex = dataSetClassIndex.get(dataSetName);
             Instances original = ConverterUtils.DataSource.read(originalFile);
             Helper.setDataSetClassIndex(original, dataSetClassIndex.get(dataSetName));
@@ -153,22 +160,22 @@ public class Main {
             else
                 classifiers = new Class[] {UnimputedSMOreg.class, IBk.class, UnimputedDecisionTable.class,
                         UnimputedLinearRegression.class, UnimputedM5P.class};
-            classifiers = new Class[] {UnimputedLinearRegression.class};
+            //classifiers = new Class[] {UnimputedLinearRegression.class};
             Class<?>[] imputers = new Class[]{CopyImputer.class, MEIImputer.class,
-                    //CMeansImputer.class,
+                    CMeansImputer.class,
                     GMMImputer.class,
-                    //HotDeckImputer.class, KNNImputer.class,
-                    //LLRImputer.class,
+                    HotDeckImputer.class, KNNImputer.class,
+                    LLRImputer.class,
                     FastLLRImputer.class,
                     null};
             double[] missingRatios = {0.0, 0.01, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5};
-            missingRatios = new double[] {0.5};
+            missingRatios = new double[] {0.0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5};
             int missRepeat = 30;
             double[][][] table = new double[classifiers.length][imputers.length][missingRatios.length];
 
             // Calculate the whole table here.
             for (int rpt=0; rpt<missRepeat; ++rpt) {
-                System.out.println(dataSetName + ": round " + rpt + "/" + missRepeat + " starts.");
+                //System.out.println(dataSetName + ": round " + rpt + "/" + missRepeat + " starts.");
                 for (int k = 0; k < missingRatios.length; ++k) {
                     Instances missed = misser.miss(original, missingRatios[k], classIndex);
 
@@ -191,10 +198,11 @@ public class Main {
                         }
                     }
                 }
-                System.out.println(dataSetName + ": round " + rpt + "/" + missRepeat + " ends.");
+                //System.out.println(dataSetName + ": round " + rpt + "/" + missRepeat + " ends.");
             }
 
             // Display the results.
+            System.out.println("===============> Begins of " + dataSetName + " <===============");
             for (int i=0; i<table.length; ++i) {
                 for (int j=0; j<table[0].length; ++j) {
                     System.out.printf("%20s, ", classifiers[i].getSimpleName());
@@ -218,6 +226,7 @@ public class Main {
                     }
                 }
             }
+            System.out.println("===============> Ends of " + dataSetName + " <===============");
         } catch (IllegalArgumentException | NullPointerException e) {
             System.out.println("Error occurs in main task. Details: " + e.getMessage());
         } catch (MissException e) {
