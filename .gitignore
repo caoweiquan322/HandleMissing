@@ -1,4 +1,4 @@
-.idea
+*.idea
 out
 *.arff
 .DS_Store

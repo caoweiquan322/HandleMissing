@@ -1,9 +1,7 @@
 package com.fatty.ml;
 
 import com.fatty.Helper;
-import com.fatty.ml.unimputed.UnimputedDecisionTable;
-import com.fatty.ml.unimputed.UnimputedJ48;
-import com.fatty.ml.unimputed.UnimputedSMO;
+import com.fatty.ml.unimputed.*;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.BayesNet;
@@ -153,15 +151,16 @@ public class Main {
             if (original.classAttribute().isNominal())
                 classifiers = new Class[] {UnimputedSMO.class, IBk.class, UnimputedDecisionTable.class, UnimputedJ48.class};
             else
-                classifiers = new Class[] {LinearRegression.class, IBk.class, MultilayerPerceptron.class, SMOreg.class};
-            classifiers = new Class[] {IBk.class};
+                classifiers = new Class[] {UnimputedSMOreg.class, IBk.class, UnimputedDecisionTable.class,
+                        UnimputedLinearRegression.class, UnimputedM5P.class};
+            //classifiers = new Class[] {IBk.class};
             Class<?>[] imputers = new Class[]{CopyImputer.class, MEIImputer.class,
                     //HotDeckImputer.class, KNNImputer.class,
                     //LLRImputer.class,
                     FastLLRImputer.class,
                     null};
             double[] missingRatios = {0.0, 0.01, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5};
-            missingRatios = new double[] {0, 0.3, 0.5};
+            missingRatios = new double[] {0.5};
             int missRepeat = 30;
             double[][][] table = new double[classifiers.length][imputers.length][missingRatios.length];
 
