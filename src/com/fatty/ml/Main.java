@@ -125,7 +125,9 @@ public class Main {
     }
 
     public static void main(String[] args) throws Exception {
-        for (String dataset: createDataSetClassIndex().keySet()) {
+        String[] datasets = new String[] {"iris", "wine", "sonar", "glass", "ionosphere", "pima", "satellite", "shuttle",
+        "wpbc", "stock", "abalone", "cpu_act", "bank8FM", "bank32NH", "kin8nm", "puma8NH", "puma32H", "cal_housing"};
+        for (String dataset: datasets) {
             System.out.println("Processing dataset: " + dataset);
             demo(dataset, args);
         }
