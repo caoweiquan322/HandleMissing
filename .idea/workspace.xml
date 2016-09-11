@@ -30,19 +30,19 @@
       <file leaf-file-name="FastLLR.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/com/fatty/ml/FastLLR.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="161">
-              <caret line="236" column="25" selection-start-line="236" selection-start-column="25" selection-end-line="236" selection-end-column="25" />
+            <state relative-caret-position="296">
+              <caret line="255" column="57" selection-start-line="255" selection-start-column="57" selection-end-line="255" selection-end-column="57" />
               <folding>
                 <element signature="method#buildClassifier#0;class#FastLLR#0" expanded="false" />
                 <element signature="method#buildKNNGraph#0;class#FastLLR#0" expanded="false" />
-                <element signature="e#10414#10415#0" expanded="true" />
-                <element signature="e#10460#10461#0" expanded="true" />
-                <element signature="e#10536#10537#0" expanded="true" />
-                <element signature="e#10579#10580#0" expanded="true" />
-                <element signature="e#10955#10956#0" expanded="true" />
-                <element signature="e#11001#11002#0" expanded="true" />
-                <element signature="e#11077#11078#0" expanded="true" />
-                <element signature="e#11120#11121#0" expanded="true" />
+                <element signature="e#10573#10574#0" expanded="true" />
+                <element signature="e#10619#10620#0" expanded="true" />
+                <element signature="e#10695#10696#0" expanded="true" />
+                <element signature="e#10738#10739#0" expanded="true" />
+                <element signature="e#11114#11115#0" expanded="true" />
+                <element signature="e#11160#11161#0" expanded="true" />
+                <element signature="e#11236#11237#0" expanded="true" />
+                <element signature="e#11279#11280#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -51,9 +51,12 @@
       <file leaf-file-name="FastQPSolverDemo.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/com/fatty/ml/FastQPSolverDemo.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="120">
-              <caret line="8" column="25" selection-start-line="8" selection-start-column="25" selection-end-line="8" selection-end-column="25" />
-              <folding />
+            <state relative-caret-position="270">
+              <caret line="27" column="30" selection-start-line="27" selection-start-column="30" selection-end-line="27" selection-end-column="30" />
+              <folding>
+                <element signature="e#663#664#0" expanded="true" />
+                <element signature="e#700#701#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -954,14 +957,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/fatty/ml/LLR.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="304">
-          <caret line="373" column="5" selection-start-line="373" selection-start-column="5" selection-end-line="373" selection-end-column="5" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar:///Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home/src.zip!/java/lang/Class.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="125">
@@ -980,29 +975,40 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/fatty/ml/LLR.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="304">
+          <caret line="373" column="5" selection-start-line="373" selection-start-column="5" selection-end-line="373" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/com/fatty/ml/FastQPSolverDemo.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="8" column="25" selection-start-line="8" selection-start-column="25" selection-end-line="8" selection-end-column="25" />
-          <folding />
+        <state relative-caret-position="270">
+          <caret line="27" column="30" selection-start-line="27" selection-start-column="30" selection-end-line="27" selection-end-column="30" />
+          <folding>
+            <element signature="e#663#664#0" expanded="true" />
+            <element signature="e#700#701#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/com/fatty/ml/FastLLR.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="161">
-          <caret line="236" column="25" selection-start-line="236" selection-start-column="25" selection-end-line="236" selection-end-column="25" />
+        <state relative-caret-position="296">
+          <caret line="255" column="57" selection-start-line="255" selection-start-column="57" selection-end-line="255" selection-end-column="57" />
           <folding>
             <element signature="method#buildClassifier#0;class#FastLLR#0" expanded="false" />
             <element signature="method#buildKNNGraph#0;class#FastLLR#0" expanded="false" />
-            <element signature="e#10414#10415#0" expanded="true" />
-            <element signature="e#10460#10461#0" expanded="true" />
-            <element signature="e#10536#10537#0" expanded="true" />
-            <element signature="e#10579#10580#0" expanded="true" />
-            <element signature="e#10955#10956#0" expanded="true" />
-            <element signature="e#11001#11002#0" expanded="true" />
-            <element signature="e#11077#11078#0" expanded="true" />
-            <element signature="e#11120#11121#0" expanded="true" />
+            <element signature="e#10573#10574#0" expanded="true" />
+            <element signature="e#10619#10620#0" expanded="true" />
+            <element signature="e#10695#10696#0" expanded="true" />
+            <element signature="e#10738#10739#0" expanded="true" />
+            <element signature="e#11114#11115#0" expanded="true" />
+            <element signature="e#11160#11161#0" expanded="true" />
+            <element signature="e#11236#11237#0" expanded="true" />
+            <element signature="e#11279#11280#0" expanded="true" />
           </folding>
         </state>
       </provider>

@@ -234,9 +234,8 @@ public class FastLLR extends LLR {
     public static double[] smoBasedLLRSolver(double[][] A, double[] b) {
         Helper.checkIntEqual(A.length, b.length);
         int k = A[0].length;
-        int d = A.length;
-        double EPSILON = 1e-5;
-        int MAX_ITR = 10;
+        double EPSILON = 1e-4;
+        int MAX_ITR = 100;
 
         // Initialization.
         double[] w = new double[k];
@@ -249,6 +248,13 @@ public class FastLLR extends LLR {
         double[] cnst = null;// Need be initialized in each iteration.
 
         // Iterations.
+        double sum0 = 0.0;
+        for (double x: vecSub(matMultiply(A, w), b)) {
+            //System.out.printf("%5.3f,", x);
+            sum0 += Math.abs(x);
+        }
+        System.out.printf("Itr: %04d, %8.6f\n", 0, sum0);
+
         double delta = 0.0, nwi;
         for (int itr=0; itr<MAX_ITR; ++itr) {
             boolean hasBreak = false;
@@ -258,22 +264,23 @@ public class FastLLR extends LLR {
                     cnst = vecSub(c, At[i], w[i], cnst); // Update the const part of the 1-d optimization problem.
                     nwi = -dotProd(At[i], cnst)/q[i]; // Update the solution vector.
                     if (nwi<0) nwi=0;
-                    if (nwi>1) nwi=1.0;
+                    //if (nwi>1) nwi=1.0;
                     delta = nwi - w[i];
-                    w[i] += nwi;
+                    w[i] = nwi;
                     c = vecAdd(c, At[i], delta, c);
                     alpha = vecAdd(alpha, AtA[i], delta, alpha);
-
-                    // Display the partial results.
-                    double[] diff = vecSub(matMultiply(A, w), b);
-                    double sum = 0.0;
-                    for (double x: diff) {
-                        //System.out.printf("%5.3f,", x);
-                        sum += Math.abs(x);
-                    }
-                    System.out.printf("%5.3f\n", sum);
                 }
             }
+
+            // Display the partial results.
+            double[] diff = vecSub(matMultiply(A, w), b);
+            double sum = 0.0;
+            for (double x: diff) {
+                //System.out.printf("%5.3f,", x);
+                sum += Math.abs(x);
+            }
+            System.out.printf("Itr: %04d, %8.6f\n", itr, sum);
+
             // Optimized.
             if (!hasBreak)
                 break;
