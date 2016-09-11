@@ -32,9 +32,9 @@ public class LLR extends AbstractClassifier {
         this.strategy = strategy;
     }
 
-    private LLRStrategy strategy;
+    protected LLRStrategy strategy;
 
-    enum LLRStrategy {
+    public enum LLRStrategy {
         Average,
         Optimize
     }

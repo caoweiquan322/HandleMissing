@@ -1,19 +1,16 @@
 package com.fatty.ml;
 
 import com.fatty.Helper;
+import com.fatty.ml.imputer.*;
+import com.fatty.ml.misser.KangMisser;
+import com.fatty.ml.misser.MissException;
+import com.fatty.ml.misser.Misser;
 import com.fatty.ml.unimputed.*;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
-import weka.classifiers.bayes.BayesNet;
-import weka.classifiers.functions.LinearRegression;
-import weka.classifiers.functions.MultilayerPerceptron;
-import weka.classifiers.functions.SMOreg;
 import weka.classifiers.lazy.IBk;
-import weka.classifiers.meta.AdaBoostM1;
-import weka.classifiers.trees.J48;
 import weka.core.Instance;
 import weka.core.Instances;
-import weka.core.SystemInfo;
 import weka.core.Utils;
 import weka.core.converters.ConverterUtils;
 import weka.filters.Filter;
@@ -170,6 +167,7 @@ public class Main {
                     LLRImputer.class,
                     FastLLRImputer.class,
                     null};
+            imputers = new Class[] {CopyImputer.class, ApproximateKNNImputer.class}; // Test the ak-NN imputer.
             double[] missingRatios = {0.0, 0.01, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5};
             missingRatios = new double[] {0.0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5};
             int missRepeat = 30;

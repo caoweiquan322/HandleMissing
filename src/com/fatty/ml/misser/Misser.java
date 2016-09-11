@@ -1,4 +1,4 @@
-package com.fatty.ml;
+package com.fatty.ml.misser;
 
 import weka.core.Instances;
 

@@ -1,6 +1,5 @@
-package com.fatty.ml;
+package com.fatty.ml.imputer;
 
-import com.fatty.Helper;
 import weka.core.Instances;
 
 /**

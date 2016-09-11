@@ -1,4 +1,4 @@
-package com.fatty.ml;
+package com.fatty.ml.imputer;
 
 /**
  * Created by fatty on 16/8/21.
