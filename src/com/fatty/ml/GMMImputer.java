@@ -36,8 +36,8 @@ public class GMMImputer extends AbstractImputer {
                 for (int j=0; j<gmm[0].length; ++j)
                     avg[j] += prior[i]*gmm[i][j][0];
             }
-            for (int j=0; j<gmm[0].length; ++j)
-                avg[j] /= prior.length;
+//            for (int j=0; j<gmm[0].length; ++j)
+//                avg[j] /= prior.length;
 
             Instances imputed = new Instances(instances);
             for (Instance line: imputed) {
