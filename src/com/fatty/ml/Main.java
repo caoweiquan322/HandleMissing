@@ -134,7 +134,11 @@ public class Main {
             // Specify the dataset.
             String dataSetName = "iris";
             int numInterruptColumns = 0;
-            String originalFile = "/Users/fatty/Downloads/ml_datasets_arff/" + dataSetName + ".arff";
+            String originalFile;
+            if (args.length > 1)
+                originalFile = args[1] + "/" + dataSetName + ".arff";
+            else
+                originalFile = "/Users/fatty/Downloads/ml_datasets_arff/" + dataSetName + ".arff";
             int classIndex = dataSetClassIndex.get(dataSetName);
             Instances original = ConverterUtils.DataSource.read(originalFile);
             Helper.setDataSetClassIndex(original, dataSetClassIndex.get(dataSetName));
