@@ -153,8 +153,9 @@ public class Main {
             else
                 classifiers = new Class[] {UnimputedSMOreg.class, IBk.class, UnimputedDecisionTable.class,
                         UnimputedLinearRegression.class, UnimputedM5P.class};
-            //classifiers = new Class[] {IBk.class};
+            classifiers = new Class[] {UnimputedLinearRegression.class};
             Class<?>[] imputers = new Class[]{CopyImputer.class, MEIImputer.class,
+                    CMeansImputer.class,
                     //HotDeckImputer.class, KNNImputer.class,
                     //LLRImputer.class,
                     FastLLRImputer.class,

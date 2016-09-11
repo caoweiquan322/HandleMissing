@@ -8,6 +8,6 @@ if __name__ == '__main__':
     os.system('git checkout .')
     os.system('git pull origin master')
     os.system('ant -f HandleMissing.xml all')
-    print('You may not run:')
+    print('You may now run:')
     print('python startup.py /home/fatty/Code/ml_datasets_arff ../result.txt')
 
