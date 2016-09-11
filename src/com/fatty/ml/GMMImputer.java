@@ -1,6 +1,7 @@
 package com.fatty.ml;
 
 import com.fatty.Helper;
+import weka.clusterers.EM;
 import weka.clusterers.SimpleKMeans;
 import weka.core.Instance;
 import weka.core.Instances;
@@ -11,7 +12,7 @@ import java.util.stream.Collectors;
 /**
  * Created by fatty on 16/9/11.
  */
-public class CMeansImputer extends AbstractImputer {
+public class GMMImputer extends AbstractImputer {
     @Override
     public Instances impute(Instances instances, int classIndex) throws ImputeException {
         Helper.checkNotNull("instances", instances);
@@ -19,23 +20,33 @@ public class CMeansImputer extends AbstractImputer {
         try {
             Helper.setDataSetClassIndex(instances, classIndex);
 
-            // K-means clustering.
+            // GMM clustering.
             Instances complete = new Instances(instances, 0);
             complete.addAll(instances.stream().filter(inst -> !inst.hasMissingValue()).collect(Collectors.toList()));
-            SimpleKMeans kMeans = new SimpleKMeans();
-            kMeans.setOptions(Utils.splitOptions("-N 5")); // 5 centroids in total.
+
+            EM em = new EM();
+            em.setOptions(Utils.splitOptions("-N 5"));
             complete.setClassIndex(-1);
-            kMeans.buildClusterer(complete);
-            Instances centroids = kMeans.getClusterCentroids();
-            Helper.setDataSetClassIndex(centroids, classIndex);
+            em.buildClusterer(complete);
+            double[][][] gmm = em.getClusterModelsNumericAtts();
+            double[] prior = em.getClusterPriors();
+            double[] avg = new double[gmm[0].length];
+            for (int i=0; i<prior.length; ++i)
+            {
+                for (int j=0; j<gmm[0].length; ++j)
+                    avg[j] += prior[i]*gmm[i][j][0];
+            }
+            for (int j=0; j<gmm[0].length; ++j)
+                avg[j] /= prior.length;
 
             Instances imputed = new Instances(instances);
-            LLR llr = new LLR(1);
-            llr.setStrategy(LLR.LLRStrategy.Average);
-            llr.buildClassifier(centroids);
             for (Instance line: imputed) {
                 if (line.hasMissingValue()) {
-                    llr.distributionForInstance(line);
+                    for (int j=0; j<line.numAttributes(); ++j) {
+                        if (line.isMissing(j) && line.classIndex() != j) {
+                            line.setValue(j, avg[j]);
+                        }
+                    }
                 }
             }
             return imputed;

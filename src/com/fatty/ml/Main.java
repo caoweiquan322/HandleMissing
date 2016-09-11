@@ -155,7 +155,8 @@ public class Main {
                         UnimputedLinearRegression.class, UnimputedM5P.class};
             classifiers = new Class[] {UnimputedLinearRegression.class};
             Class<?>[] imputers = new Class[]{CopyImputer.class, MEIImputer.class,
-                    CMeansImputer.class,
+                    //CMeansImputer.class,
+                    GMMImputer.class,
                     //HotDeckImputer.class, KNNImputer.class,
                     //LLRImputer.class,
                     FastLLRImputer.class,

@@ -2,7 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="de84bacf-5c17-44e9-823b-a8b1c5f42182" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/fatty/ml/GMMImputer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/fatty/ml/CMeansImputer.java" afterPath="$PROJECT_DIR$/src/com/fatty/ml/CMeansImputer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/fatty/ml/Main.java" afterPath="$PROJECT_DIR$/src/com/fatty/ml/Main.java" />
     </list>
     <ignored path="HandleMissing.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -26,11 +29,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Main.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Main.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/com/fatty/ml/Main.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="382">
-              <caret line="147" column="39" selection-start-line="147" selection-start-column="39" selection-end-line="147" selection-end-column="39" />
+            <state relative-caret-position="352">
+              <caret line="165" column="32" selection-start-line="165" selection-start-column="32" selection-end-line="165" selection-end-column="32" />
               <folding />
             </state>
           </provider>
@@ -39,21 +42,44 @@
       <file leaf-file-name="HotDeckImputer.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/com/fatty/ml/HotDeckImputer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="210">
-              <caret line="16" column="0" selection-start-line="16" selection-start-column="0" selection-end-line="16" selection-end-column="0" />
+            <state relative-caret-position="240">
+              <caret line="18" column="33" selection-start-line="18" selection-start-column="33" selection-end-line="18" selection-end-column="33" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="CMeansImputer.java" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/com/fatty/ml/CMeansImputer.java">
+      <file leaf-file-name="GMMImputer.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/com/fatty/ml/GMMImputer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="330">
-              <caret line="29" column="61" selection-start-line="29" selection-start-column="61" selection-end-line="29" selection-end-column="61" />
+            <state relative-caret-position="334">
+              <caret line="39" column="39" selection-start-line="39" selection-start-column="39" selection-end-line="39" selection-end-column="39" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="EM.java" pinned="false" current-in-tab="false">
+        <entry file="jar://$PROJECT_DIR$/lib/weka-src.jar!/src/main/java/weka/clusterers/EM.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="182">
+              <caret line="1231" column="24" selection-start-line="1231" selection-start-column="4" selection-end-line="1231" selection-end-column="24" />
+              <folding>
+                <element signature="e#37000#37001#0" expanded="true" />
+                <element signature="e#37030#37031#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Estimator.java" pinned="false" current-in-tab="false">
+        <entry file="jar://$PROJECT_DIR$/lib/weka-src.jar!/src/main/java/weka/estimators/Estimator.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-1416">
+              <caret line="93" column="22" selection-start-line="93" selection-start-column="22" selection-end-line="93" selection-end-column="22" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -109,8 +135,9 @@
         <option value="$PROJECT_DIR$/src/com/fatty/ml/unimputed/UnimputedLinearRegression.java" />
         <option value="$PROJECT_DIR$/src/com/fatty/ml/unimputed/UnimputedM5P.java" />
         <option value="$PROJECT_DIR$/batch_pull.py" />
-        <option value="$PROJECT_DIR$/src/com/fatty/ml/Main.java" />
         <option value="$PROJECT_DIR$/src/com/fatty/ml/CMeansImputer.java" />
+        <option value="$PROJECT_DIR$/src/com/fatty/ml/GMMImputer.java" />
+        <option value="$PROJECT_DIR$/src/com/fatty/ml/Main.java" />
       </list>
     </option>
   </component>
@@ -553,21 +580,6 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="jar://$PROJECT_DIR$/lib/java-graphs-0.28.jar!/info/debatty/java/graphs/Node.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="222">
-          <caret line="22" column="11" selection-start-line="22" selection-start-column="11" selection-end-line="22" selection-end-column="11" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$USER_HOME$/Downloads/jdk1.8.0_101/src.zip!/java/util/HashMap.java" />
-    <entry file="file://$PROJECT_DIR$/src/com/fatty/ml/WLLR.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="287">
-          <caret line="30" column="36" selection-start-line="30" selection-start-column="36" selection-end-line="30" selection-end-column="36" />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://$PROJECT_DIR$/lib/java-graphs-0.28.jar!/info/debatty/java/graphs/Graph.class">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="476">
@@ -924,22 +936,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/fatty/ml/Main.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="382">
-          <caret line="147" column="39" selection-start-line="147" selection-start-column="39" selection-end-line="147" selection-end-column="39" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/fatty/ml/HotDeckImputer.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
-          <caret line="16" column="0" selection-start-line="16" selection-start-column="0" selection-end-line="16" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://$PROJECT_DIR$/lib/weka-src.jar!/src/main/java/weka/clusterers/SimpleKMeans.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="21669">
@@ -950,11 +946,56 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/com/fatty/ml/CMeansImputer.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="330">
-          <caret line="29" column="61" selection-start-line="29" selection-start-column="61" selection-end-line="29" selection-end-column="61" />
+        <state relative-caret-position="210">
+          <caret line="25" column="63" selection-start-line="25" selection-start-column="63" selection-end-line="25" selection-end-column="63" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/fatty/ml/HotDeckImputer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="240">
+          <caret line="18" column="33" selection-start-line="18" selection-start-column="33" selection-end-line="18" selection-end-column="33" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/lib/weka-src.jar!/src/main/java/weka/estimators/Estimator.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1416">
+          <caret line="93" column="22" selection-start-line="93" selection-start-column="22" selection-end-line="93" selection-end-column="22" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/lib/weka-src.jar!/src/main/java/weka/clusterers/EM.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="182">
+          <caret line="1231" column="24" selection-start-line="1231" selection-start-column="4" selection-end-line="1231" selection-end-column="24" />
+          <folding>
+            <element signature="e#37000#37001#0" expanded="true" />
+            <element signature="e#37030#37031#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/fatty/ml/GMMImputer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="334">
+          <caret line="39" column="39" selection-start-line="39" selection-start-column="39" selection-end-line="39" selection-end-column="39" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/fatty/ml/Main.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="352">
+          <caret line="165" column="32" selection-start-line="165" selection-start-column="32" selection-end-line="165" selection-end-column="32" />
+          <folding />
         </state>
       </provider>
     </entry>
