@@ -139,6 +139,7 @@ public class Main {
                 originalFile = args[1] + "/" + dataSetName + ".arff";
             else
                 originalFile = "/Users/fatty/Downloads/ml_datasets_arff/" + dataSetName + ".arff";
+            System.out.println("Processing data: " + originalFile);
             int classIndex = dataSetClassIndex.get(dataSetName);
             Instances original = ConverterUtils.DataSource.read(originalFile);
             Helper.setDataSetClassIndex(original, dataSetClassIndex.get(dataSetName));
