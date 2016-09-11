@@ -24,6 +24,7 @@ public class CMeansImputer extends AbstractImputer {
             complete.addAll(instances.stream().filter(inst -> !inst.hasMissingValue()).collect(Collectors.toList()));
             SimpleKMeans kMeans = new SimpleKMeans();
             kMeans.setOptions(Utils.splitOptions("-N 20")); // 20 centroids in total.
+            complete.setClassIndex(-1);
             kMeans.buildClusterer(complete);
             Instances centroids = kMeans.getClusterCentroids();
 
