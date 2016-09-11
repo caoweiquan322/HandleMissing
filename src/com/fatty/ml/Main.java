@@ -132,7 +132,7 @@ public class Main {
             HashMap<String, Integer> dataSetClassIndex = createDataSetClassIndex();
 
             // Specify the dataset.
-            String dataSetName = "iris";
+            String dataSetName = "stock";
             int numInterruptColumns = 0;
             String originalFile;
             if (args.length > 0)
@@ -154,7 +154,7 @@ public class Main {
                 classifiers = new Class[] {UnimputedSMO.class, IBk.class, UnimputedDecisionTable.class, UnimputedJ48.class};
             else
                 classifiers = new Class[] {LinearRegression.class, IBk.class, MultilayerPerceptron.class, SMOreg.class};
-            classifiers = new Class[] {UnimputedSMO.class};
+            classifiers = new Class[] {IBk.class};
             Class<?>[] imputers = new Class[]{CopyImputer.class, MEIImputer.class,
                     //HotDeckImputer.class, KNNImputer.class,
                     //LLRImputer.class,
