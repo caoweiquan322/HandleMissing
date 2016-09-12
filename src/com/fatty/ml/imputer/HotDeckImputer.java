@@ -1,7 +1,7 @@
 package com.fatty.ml.imputer;
 
 import com.fatty.Helper;
-import com.fatty.ml.LLR;
+import com.fatty.ml.UniformLLR;
 import weka.core.Instance;
 import weka.core.Instances;
 
@@ -17,8 +17,7 @@ public class HotDeckImputer extends AbstractImputer {
             Helper.setDataSetClassIndex(instances, classIndex);
 
             Instances imputed = new Instances(instances);
-            LLR llr = new LLR(1);
-            llr.setStrategy(LLR.LLRStrategy.Average);
+            UniformLLR llr = new UniformLLR(1, UniformLLR.NNStrategy.BruteForce, UniformLLR.LLRStrategy.Average); // K set to 50 by default.
             llr.buildClassifier(imputed);
             for (Instance line: imputed) {
                 if (line.hasMissingValue()) {

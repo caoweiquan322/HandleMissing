@@ -1,15 +1,14 @@
 package com.fatty.ml.imputer;
 
 import com.fatty.Helper;
-import com.fatty.ml.FastLLR;
-import com.fatty.ml.LLR;
+import com.fatty.ml.UniformLLR;
 import weka.core.Instance;
 import weka.core.Instances;
 
 /**
- * Created by fatty on 16/9/11.
+ * Created by fatty on 16-8-31.
  */
-public class ApproximateKNNImputer extends AbstractImputer {
+public class KNNOpt2Imputer extends AbstractImputer {
     @Override
     public Instances impute(Instances instances, int classIndex) throws ImputeException {
         Helper.checkNotNull("instances", instances);
@@ -18,8 +17,7 @@ public class ApproximateKNNImputer extends AbstractImputer {
             Helper.setDataSetClassIndex(instances, classIndex);
 
             Instances imputed = new Instances(instances);
-            LLR llr = new FastLLR(50); // K set to 20 by default.
-            llr.setStrategy(LLR.LLRStrategy.Average);
+            UniformLLR llr = new UniformLLR(50, UniformLLR.NNStrategy.BruteForce, UniformLLR.LLRStrategy.Optimize2d); // K set to 50 by default.
             llr.buildClassifier(imputed);
             for (Instance line: imputed) {
                 if (line.hasMissingValue()) {
@@ -28,7 +26,6 @@ public class ApproximateKNNImputer extends AbstractImputer {
             }
             return imputed;
         } catch (Exception e) {
-            e.printStackTrace();
             throw new ImputeException("Error occurs while imputing data set. Details: " + e.getMessage(), e);
         }
     }

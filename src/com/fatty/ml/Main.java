@@ -124,8 +124,10 @@ public class Main {
     public static void main(String[] args) throws Exception {
         String[] datasets = new String[] {"iris", "wine", "sonar", "glass", "ionosphere", "pima", "satellite", "shuttle",
         "wpbc", "stock", "abalone", "cpu_act", "bank8FM", "bank32NH", "kin8nm", "puma8NH", "puma32H", "cal_housing"};
+        datasets = new String[] {"wpbc", "stock", "abalone", "cpu_act", "bank8FM", "kin8nm", "puma8NH", "cal_housing"};
+        datasets = new String[] {"iris", "wine", "sonar", "glass", "ionosphere", "pima", "satellite", "shuttle"};
         for (String dataset: datasets) {
-            System.out.println("Processing dataset: " + dataset);
+            //System.out.println("Processing dataset: " + dataset);
             demo(dataset, args);
         }
     }
@@ -142,7 +144,7 @@ public class Main {
             if (args.length > 0)
                 originalFile = args[0] + "/" + dataSetName + ".arff";
             else
-                originalFile = "/Users/fatty/Downloads/ml_datasets_arff/" + dataSetName + ".arff";
+                originalFile = "Z:/Ubuntu/Mining/SA/" + dataSetName + ".arff";
             System.out.println("\n\nProcessing data: " + originalFile);
             int classIndex = dataSetClassIndex.get(dataSetName);
             Instances original = ConverterUtils.DataSource.read(originalFile);
@@ -160,16 +162,23 @@ public class Main {
                 classifiers = new Class[] {UnimputedSMOreg.class, IBk.class, UnimputedDecisionTable.class,
                         UnimputedLinearRegression.class, UnimputedM5P.class};
             //classifiers = new Class[] {UnimputedLinearRegression.class};
-            Class<?>[] imputers = new Class[]{CopyImputer.class, MEIImputer.class,
+            Class<?>[] imputers = new Class[]{CopyImputer.class,
+                    MEIImputer.class,
                     CMeansImputer.class,
                     GMMImputer.class,
-                    HotDeckImputer.class, KNNImputer.class,
-                    LLRImputer.class,
-                    FastLLRImputer.class,
+                    HotDeckImputer.class,
+                    KNNImputer.class,
+                    //KNNOpt1Imputer.class,
+                    KNNOpt2Imputer.class,
+                    KANNImputer.class,
+                    //KANNOpt1Imputer.class,
+                    KANNOpt2Imputer.class,
                     null};
-            imputers = new Class[] {CopyImputer.class, ApproximateKNNImputer.class}; // Test the ak-NN imputer.
+//            imputers = new Class[] {CopyImputer.class, MEIImputer.class, CMeansImputer.class,
+//                    KNNImputer.class, KANNImputer.class, KANNOpt1Imputer.class, KANNOpt2Imputer.class}; // Test the ak-NN imputer.
             double[] missingRatios = {0.0, 0.01, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5};
             missingRatios = new double[] {0.0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5};
+            //missingRatios = new double[] {0.5};
             int missRepeat = 30;
             double[][][] table = new double[classifiers.length][imputers.length][missingRatios.length];
 

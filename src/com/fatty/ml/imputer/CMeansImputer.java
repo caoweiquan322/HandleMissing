@@ -1,7 +1,7 @@
 package com.fatty.ml.imputer;
 
 import com.fatty.Helper;
-import com.fatty.ml.LLR;
+import com.fatty.ml.UniformLLR;
 import weka.clusterers.SimpleKMeans;
 import weka.core.Instance;
 import weka.core.Instances;
@@ -31,8 +31,7 @@ public class CMeansImputer extends AbstractImputer {
             Helper.setDataSetClassIndex(centroids, classIndex);
 
             Instances imputed = new Instances(instances);
-            LLR llr = new LLR(1);
-            llr.setStrategy(LLR.LLRStrategy.Average);
+            UniformLLR llr = new UniformLLR(1, UniformLLR.NNStrategy.BruteForce, UniformLLR.LLRStrategy.Average);
             llr.buildClassifier(centroids);
             for (Instance line: imputed) {
                 if (line.hasMissingValue()) {
